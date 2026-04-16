@@ -44,6 +44,18 @@ $baseUrl    = Config::baseUrl();
       <div class="form-group"><label>Duración en días</label><input type="number" name="duracion_dias" value="<?= $s['DURACION_DIAS'] ?? '' ?>" min="0" max="365" step="0.5"/></div>
     </div>
     <div class="form-group"><label>Observaciones</label><textarea name="observaciones" rows="4"><?= htmlspecialchars($s['OBSERVACIONES'] ?? '') ?></textarea></div>
+    <?php if (!empty($s['RUTA_ARCHIVO'])): ?>
+    <div class="form-group">
+      <label>Documento adjunto</label>
+      <div class="archivo-adjunto">
+        <span class="archivo-icono">📑</span>
+        <div class="archivo-info">
+          <div class="archivo-nombre"><?= htmlspecialchars(basename($s['RUTA_ARCHIVO'])) ?></div>
+        </div>
+        <a href="<?= $baseUrl ?>/<?= htmlspecialchars($s['RUTA_ARCHIVO']) ?>" target="_blank" class="archivo-ver">Ver PDF</a>
+      </div>
+    </div>
+    <?php endif; ?>
     <div class="form-actions">
       <button type="submit" class="btn btn-green">Guardar cambios</button>
       <a href="<?= $baseUrl ?>/dashboard" class="btn btn-gray">Cancelar</a>

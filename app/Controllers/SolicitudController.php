@@ -60,7 +60,14 @@ final class SolicitudController extends Controller
             'duracion_horas'    => Security::sanitizeFloat($_POST['duracion_horas'] ?? '0') ?: null,
             'duracion_dias'     => Security::sanitizeFloat($_POST['duracion_dias'] ?? '0') ?: null,
             'observaciones'     => Security::sanitizeString($_POST['observaciones'] ?? ''),
+            'ruta_archivo'      => null,
         ];
+
+        // Procesar archivo PDF si se ha subido
+        $rutaArchivo = $this->procesarArchivoPDF($user['cedula']);
+        if ($rutaArchivo !== false) {
+            $data['ruta_archivo'] = $rutaArchivo;
+        }
 
         $ok = (new SolicitudModel())->crear($data);
 
@@ -71,6 +78,73 @@ final class SolicitudController extends Controller
         }
 
         $this->redirect('/dashboard');
+    }
+
+    private function procesarArchivoPDF(string $nitEmpleado): string|false
+    {
+        if (!isset($_FILES['documento_pdf']) || $_FILES['documento_pdf']['error'] === UPLOAD_ERR_NO_FILE) {
+            return null; // No hay archivo, es opcional
+        }
+
+        $archivo = $_FILES['documento_pdf'];
+
+        // Validar errores de subida
+        if ($archivo['error'] !== UPLOAD_ERR_OK) {
+            Flash::error('Error al subir el archivo: código ' . $archivo['error']);
+            return false;
+        }
+
+        // Validar tipo MIME
+        $finfo = finfo_open(FILEINFO_MIME_TYPE);
+        $mimeType = finfo_file($finfo, $archivo['tmp_name']);
+        finfo_close($finfo);
+
+        $tiposPermitidos = ['application/pdf', 'application/x-pdf'];
+        if (!in_array($mimeType, $tiposPermitidos, true)) {
+            Flash::error('El archivo debe ser un PDF válido.');
+            return false;
+        }
+
+        // Validar extensión
+        $extension = strtolower(pathinfo($archivo['name'], PATHINFO_EXTENSION));
+        if ($extension !== 'pdf') {
+            Flash::error('La extensión del archivo debe ser .pdf');
+            return false;
+        }
+
+        // Validar tamaño (5MB = 5 * 1024 * 1024 bytes)
+        $maxSize = 5 * 1024 * 1024;
+        if ($archivo['size'] > $maxSize) {
+            Flash::error('El archivo excede el tamaño máximo de 5MB.');
+            return false;
+        }
+
+        // Crear directorio de uploads si no existe
+        $uploadDir = __DIR__ . '/../../public/uploads/solicitudes/';
+        if (!is_dir($uploadDir)) {
+            mkdir($uploadDir, 0755, true);
+        }
+
+        // Generar nombre único seguro
+        $nombreBase = preg_replace('/[^a-zA-Z0-9_-]/', '', pathinfo($archivo['name'], PATHINFO_FILENAME));
+        $nombreUnico = sprintf(
+            '%s_%s_%s_%s.pdf',
+            $nitEmpleado,
+            date('Ymd'),
+            uniqid('', true),
+            substr($nombreBase, 0, 30)
+        );
+
+        $rutaDestino = $uploadDir . $nombreUnico;
+
+        // Mover archivo
+        if (!move_uploaded_file($archivo['tmp_name'], $rutaDestino)) {
+            Flash::error('Error al guardar el archivo.');
+            return false;
+        }
+
+        // Retornar ruta relativa para almacenar en BD
+        return 'uploads/solicitudes/' . $nombreUnico;
     }
 
     public function editarForm(string $id): void

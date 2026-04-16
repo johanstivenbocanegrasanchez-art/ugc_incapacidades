@@ -21,6 +21,19 @@ $baseUrl = Config::baseUrl();
     <div class="detail-row"><dt>Horas</dt><dd><?= $solicitud['DURACION_HORAS'] ?? '—' ?></dd></div>
     <div class="detail-row"><dt>Días</dt><dd><?= $solicitud['DURACION_DIAS'] ?? '—' ?></dd></div>
     <div class="detail-row"><dt>Observaciones</dt><dd><?= nl2br(htmlspecialchars($solicitud['OBSERVACIONES'] ?? '')) ?: '—' ?></dd></div>
+    <?php if (!empty($solicitud['RUTA_ARCHIVO'])): ?>
+    <div class="detail-row"><dt>Documento adjunto</dt>
+      <dd>
+        <div class="archivo-adjunto" style="margin:0;max-width:400px;">
+          <span class="archivo-icono">📑</span>
+          <div class="archivo-info">
+            <div class="archivo-nombre"><?= htmlspecialchars(basename($solicitud['RUTA_ARCHIVO'])) ?></div>
+          </div>
+          <a href="<?= $baseUrl ?>/<?= htmlspecialchars($solicitud['RUTA_ARCHIVO']) ?>" target="_blank" class="archivo-ver">Ver PDF</a>
+        </div>
+      </dd>
+    </div>
+    <?php endif; ?>
     <?php if (!empty($solicitud['OBSERVACION_JEFE'])): ?>
     <div class="detail-row"><dt>Obs. Jefe</dt><dd><?= nl2br(htmlspecialchars($solicitud['OBSERVACION_JEFE'])) ?></dd></div>
     <?php endif; ?>
