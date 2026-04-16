@@ -32,8 +32,8 @@ define('ROL_EMPLEADO', 'solicitante');
 define('CC_RRHH', ['2413001', '2413002', '2413003', '2413004']);
 define('CC_APRENDICES', ['2411001', '2411002', '2411004']);
 
-define('NIVEL_MIN_JEFE', 51);
-define('NIVEL_MIN_ADMIN', 100);
+define('NIVEL_MIN_JEFE', 4);
+define('NIVEL_MIN_ADMIN', 7);
 
 define('ESTADO_PENDIENTE_JEFE', 'PENDIENTE_JEFE');
 define('ESTADO_APROBADO_JEFE',  'APROBADO_JEFE');
@@ -56,8 +56,8 @@ define('TIPOS_SOLICITUD', [
 
 define('USUARIOS_PRUEBA', [
     '11111111' => ['cedula' => '11111111', 'nombre' => 'Juan Empleado (Prueba)', 'email' => 'empleado@ugc.edu.co', 'rol' => ROL_EMPLEADO, 'nivel' => 30, 'centro_costo' => '2312101', 'nit_jefe' => '22222222', 'nombre_jefe' => 'María Jefe (Prueba)'],
-    '22222222' => ['cedula' => '22222222', 'nombre' => 'María Jefe (Prueba)', 'email' => 'jefe@ugc.edu.co', 'rol' => ROL_JEFE, 'nivel' => 65, 'centro_costo' => '2312101', 'nit_jefe' => '44444444', 'nombre_jefe' => 'Ana Admin (Prueba)'],
+    '22222222' => ['cedula' => '22222222', 'nombre' => 'María Jefe (Prueba)', 'email' => 'jefe@ugc.edu.co', 'rol' => ROL_JEFE, 'nivel' => 5, 'centro_costo' => '2312101', 'nit_jefe' => '44444444', 'nombre_jefe' => 'Ana Admin (Prueba)'],
     '33333333' => ['cedula' => '33333333', 'nombre' => 'Carlos Talento Humano (Prueba)', 'email' => 'rrhh@ugc.edu.co', 'rol' => ROL_RRHH, 'nivel' => 60, 'centro_costo' => '2413001', 'nit_jefe' => '44444444', 'nombre_jefe' => 'Ana Admin (Prueba)'],
-    '44444444' => ['cedula' => '44444444', 'nombre' => 'Ana Administrador (Prueba)', 'email' => 'admin@ugc.edu.co', 'rol' => ROL_ADMIN, 'nivel' => 100, 'centro_costo' => '1020001', 'nit_jefe' => null, 'nombre_jefe' => null],
+    '44444444' => ['cedula' => '44444444', 'nombre' => 'Ana Administrador (Prueba)', 'email' => 'admin@ugc.edu.co', 'rol' => ROL_ADMIN, 'nivel' => 7, 'centro_costo' => '1020001', 'nit_jefe' => null, 'nombre_jefe' => null],
     '55555555' => ['cedula' => '55555555', 'nombre' => 'Pedro Aprendiz (Prueba)', 'email' => 'aprendiz@ugc.edu.co', 'rol' => ROL_EMPLEADO, 'nivel' => 10, 'centro_costo' => '2411001', 'nit_jefe' => null, 'nombre_jefe' => null],
 ]);
