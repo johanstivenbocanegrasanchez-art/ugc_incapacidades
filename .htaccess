@@ -2,7 +2,7 @@ Options -Indexes
 <IfModule mod_rewrite.c>
   RewriteEngine On
   RewriteBase /ugc_incapacidades/
-  RewriteRule \.(css|js|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf)$ - [L]
+  RewriteRule \.(css|js|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|pdf)$ - [L]
   RewriteCond %{REQUEST_FILENAME} !-f
   RewriteCond %{REQUEST_FILENAME} !-d
   RewriteRule ^ index.php [L,QSA]

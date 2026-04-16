@@ -13,19 +13,20 @@ final class SolicitudModel extends Model
         return $this->db->execute(
             "INSERT INTO ICEBERG.SOLICITUDES_PERMISOS
                 (NIT_EMPLEADO, NIT_JEFE, TIPO_SOLICITUD, FECHA_INICIO, FECHA_FIN,
-                 DURACION_HORAS, DURACION_DIAS, OBSERVACIONES, ESTADO, ACTIVO, FECHA_CREACION)
+                 DURACION_HORAS, DURACION_DIAS, OBSERVACIONES, RUTA_ARCHIVO, ESTADO, ACTIVO, FECHA_CREACION)
              VALUES
                 (:nit_emp, :nit_jefe, :tipo, TO_DATE(:f_ini,'YYYY-MM-DD'), TO_DATE(:f_fin,'YYYY-MM-DD'),
-                 :horas, :dias, :obs, 'PENDIENTE_JEFE', 1, SYSDATE)",
+                 :horas, :dias, :obs, :ruta_archivo, 'PENDIENTE_JEFE', 1, SYSDATE)",
             [
-                ':nit_emp'  => $data['nit_empleado'],
-                ':nit_jefe' => $data['nit_jefe'],
-                ':tipo'     => $data['tipo_solicitud'],
-                ':f_ini'    => $data['fecha_inicio'],
-                ':f_fin'    => $data['fecha_fin'],
-                ':horas'    => $data['duracion_horas'] ?: null,
-                ':dias'     => $data['duracion_dias'] ?: null,
-                ':obs'      => $data['observaciones'] ?: null,
+                ':nit_emp'       => $data['nit_empleado'],
+                ':nit_jefe'      => $data['nit_jefe'],
+                ':tipo'          => $data['tipo_solicitud'],
+                ':f_ini'         => $data['fecha_inicio'],
+                ':f_fin'         => $data['fecha_fin'],
+                ':horas'          => $data['duracion_horas'] ?: null,
+                ':dias'           => $data['duracion_dias'] ?: null,
+                ':obs'            => $data['observaciones'] ?: null,
+                ':ruta_archivo'  => $data['ruta_archivo'] ?: null,
             ]
         );
     }
