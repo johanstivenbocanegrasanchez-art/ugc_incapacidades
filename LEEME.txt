@@ -1,0 +1,27 @@
+====================================================
+  SISTEMA DE SOLICITUDES UGC - INSTRUCCIONES
+====================================================
+
+1. COPIAR LA CARPETA
+   Mueve ugc_incapacidades/ a:
+   C:\xampp\htdocs\ugc_incapacidades\
+
+2. CREAR LA TABLA EN ORACLE
+   Ejecuta el archivo INSTALAR_BD.sql en SQL*Plus o SQL Developer
+   conectado como usuario ICEBERG.
+
+3. PROBAR EN XAMPP
+   Abre: http://localhost/ugc_incapacidades/login
+   
+   Usuarios de prueba (contraseña: prueba123):
+   - 11111111  →  Empleado
+   - 22222222  →  Jefe
+   - 33333333  →  Talento Humano
+   - 44444444  →  Administrador
+   - 55555555  →  Aprendiz
+
+4. PASAR A PRODUCCIÓN
+   En config/config.php cambiar:
+   define('APP_ENV', 'production');
+   
+====================================================

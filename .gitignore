@@ -1,0 +1,39 @@
+# =============================================
+# GITIGNORE - UGC Incapacidades
+# =============================================
+
+# Composer
+/vendor/
+composer.lock
+
+# Configuración sensible
+.env
+.env.local
+.env.*.local
+
+# Logs
+/logs/
+*.log
+error_log
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDEs
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Cache
+*.cache
+.phpunit.result.cache
+
+# Archivos subidos (si aplica)
+/uploads/
+
+# XAMPP/Apache
+.htpasswd
