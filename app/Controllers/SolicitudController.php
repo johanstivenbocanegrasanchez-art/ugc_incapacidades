@@ -119,8 +119,8 @@ final class SolicitudController extends Controller
             return false;
         }
 
-        // Crear directorio de uploads si no existe
-        $uploadDir = __DIR__ . '/../../public/uploads/solicitudes/';
+        // Crear directorio de uploads si no existe (raíz del proyecto para acceso directo vía URL)
+        $uploadDir = __DIR__ . '/../../uploads/solicitudes/';
         if (!is_dir($uploadDir)) {
             mkdir($uploadDir, 0755, true);
         }
@@ -189,7 +189,17 @@ final class SolicitudController extends Controller
             'duracion_dias'        => Security::sanitizeFloat($_POST['duracion_dias'] ?? '0') ?: null,
             'observaciones'        => Security::sanitizeString($_POST['observaciones'] ?? ''),
             'nit_jefe_actualizado' => $nitJefe,
+            'ruta_archivo'         => null,
         ];
+
+        // Procesar reemplazo de PDF si se seleccionó
+        $reemplazarPdf = !empty($_POST['reemplazar_pdf']);
+        if ($reemplazarPdf) {
+            $rutaArchivo = $this->procesarArchivoPDF($user['cedula']);
+            if ($rutaArchivo !== false) {
+                $data['ruta_archivo'] = $rutaArchivo;
+            }
+        }
 
         $ok = (new SolicitudModel())->editar((int) $id, $user['cedula'], $data);
 

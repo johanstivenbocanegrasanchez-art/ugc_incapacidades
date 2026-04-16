@@ -492,6 +492,49 @@ body{background:var(--bg);color:var(--text);font-size:15px;min-height:100vh;font
   background: #dcfce7;
 }
 
+/* Archivo actual con opción de reemplazar */
+.archivo-actual {
+  margin-bottom: 16px;
+}
+
+.archivo-actual .archivo-adjunto {
+  margin-bottom: 12px;
+}
+
+.archivo-actual-label {
+  font-size: 11px;
+  color: #64748b;
+  margin-top: 4px;
+  font-weight: 500;
+}
+
+.reemplazar-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #475569;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.reemplazar-label input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: #0a5a1f;
+  cursor: pointer;
+}
+
+@media (prefers-color-scheme: dark) {
+  .archivo-actual-label {
+    color: #9aa79b;
+  }
+
+  .reemplazar-label {
+    color: #e8f0e9;
+  }
+}
+
 @media (prefers-color-scheme: dark) {
   .file-upload-container input[type="file"] {
     background: #232a25;
