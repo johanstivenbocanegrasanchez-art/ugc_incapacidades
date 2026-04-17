@@ -28,6 +28,22 @@ final class SolicitudController extends Controller
         }
 
         $jefes = $esAprendiz ? $empleadoModel->getTodosLosJefes() : [];
+
+        // En desarrollo: si el usuario es de prueba, mostrar solo jefes de prueba
+        if ($esAprendiz && \Core\Config::isDev()) {
+            $jefes = [];
+            foreach (USUARIOS_PRUEBA as $cedula => $datos) {
+                if ($datos['rol'] === ROL_JEFE) {
+                    $jefes[] = [
+                        'NIT' => $datos['cedula'],
+                        'NOMBRE_COMPLETO' => $datos['nombre'],
+                        'CENTRO_COSTO' => $datos['centro_costo'],
+                        'NIVEL' => $datos['nivel'],
+                    ];
+                }
+            }
+        }
+
         $hoy   = date('Y-m-d');
         $tipos = TIPOS_SOLICITUD;
 
@@ -176,6 +192,22 @@ final class SolicitudController extends Controller
         $empleadoModel = new EmpleadoModel();
         $esAprendiz = $empleadoModel->esAprendiz($user['centro_costo'] ?? '');
         $jefes = $esAprendiz ? $empleadoModel->getTodosLosJefes() : [];
+
+        // En desarrollo: si el usuario es de prueba, mostrar solo jefes de prueba
+        if ($esAprendiz && \Core\Config::isDev()) {
+            $jefes = [];
+            foreach (USUARIOS_PRUEBA as $cedula => $datos) {
+                if ($datos['rol'] === ROL_JEFE) {
+                    $jefes[] = [
+                        'NIT' => $datos['cedula'],
+                        'NOMBRE_COMPLETO' => $datos['nombre'],
+                        'CENTRO_COSTO' => $datos['centro_costo'],
+                        'NIVEL' => $datos['nivel'],
+                    ];
+                }
+            }
+        }
+
         $hoy   = date('Y-m-d');
         $tipos = TIPOS_SOLICITUD;
 
