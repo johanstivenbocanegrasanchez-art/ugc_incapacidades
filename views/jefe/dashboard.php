@@ -54,6 +54,36 @@ $baseUrl = Config::baseUrl();
   </table>
 </div>
 <?php endif; ?>
+
+<div class="section-header section-header--spaced"><h2>Historial de solicitudes gestionadas</h2></div>
+<?php if (empty($gestionadas)): ?>
+  <div class="empty-state"><p>📋 Aún no has gestionado ninguna solicitud.</p></div>
+<?php else: ?>
+<div class="ugc-table-wrap">
+  <table class="ugc-table">
+    <thead><tr><th>#</th><th>Empleado (NIT)</th><th>Tipo</th><th>Mi Decisión</th><th>Estado Final</th><th>Fecha Gestión</th><th>Acciones</th></tr></thead>
+    <tbody>
+    <?php foreach ($gestionadas as $s): ?>
+    <tr>
+      <td data-label="#"><?= $s['ID'] ?></td>
+      <td data-label="Empleado"><?= htmlspecialchars($s['NIT_EMPLEADO']) ?></td>
+      <td data-label="Tipo"><?= htmlspecialchars($tipos[$s['TIPO_SOLICITUD']] ?? $s['TIPO_SOLICITUD']) ?></td>
+      <td data-label="Mi Decisión">
+        <?php if (in_array($s['ESTADO'], ['APROBADO_JEFE', 'APROBADO_RRHH'])): ?>
+          <span style="color:var(--green2);font-weight:600">✅ Aprobada</span>
+        <?php else: ?>
+          <span style="color:var(--red);font-weight:600">❌ Rechazada</span>
+        <?php endif; ?>
+      </td>
+      <td data-label="Estado Final"><?= badgeEstado($s['ESTADO']) ?></td>
+      <td data-label="Fecha Gestión"><?= substr($s['FECHA_GESTION_JEFE'], 0, 10) ?></td>
+      <td><a href="<?= $baseUrl ?>/solicitud/<?= $s['ID'] ?>/ver" class="btn btn-outline btn-sm">Ver</a></td>
+    </tr>
+    <?php endforeach; ?>
+    </tbody>
+  </table>
+</div>
+<?php endif; ?>
 <div class="section-header section-header--spaced"><h2>Mis solicitudes personales</h2></div>
 <?php if (empty($misSolicitudes)): ?>
   <div class="empty-state"><p>📋 No tienes solicitudes propias.</p></div>

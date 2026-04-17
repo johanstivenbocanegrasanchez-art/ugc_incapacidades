@@ -7,21 +7,25 @@ namespace Core;
 use App\Controllers\AuthController;
 use App\Controllers\DashboardController;
 use App\Controllers\SolicitudController;
+use App\Controllers\NotificacionController;
 
 final class Router
 {
     private const ROUTES = [
         'GET' => [
-            '/'                    => [AuthController::class, 'loginForm'],
-            '/login'               => [AuthController::class, 'loginForm'],
-            '/dashboard'           => [DashboardController::class, 'index'],
-            '/solicitud/crear'     => [SolicitudController::class, 'crearForm'],
-            '/solicitudes'         => [DashboardController::class, 'listar'],
+            '/'                              => [AuthController::class, 'loginForm'],
+            '/login'                         => [AuthController::class, 'loginForm'],
+            '/dashboard'                     => [DashboardController::class, 'index'],
+            '/solicitud/crear'               => [SolicitudController::class, 'crearForm'],
+            '/solicitudes'                   => [DashboardController::class, 'listar'],
+            '/api/notificaciones/contador'   => [NotificacionController::class, 'contador'],
+            '/api/notificaciones'            => [NotificacionController::class, 'listar'],
         ],
         'POST' => [
-            '/login'               => [AuthController::class, 'loginPost'],
-            '/logout'              => [AuthController::class, 'logout'],
-            '/solicitud/crear'     => [SolicitudController::class, 'crearPost'],
+            '/login'                         => [AuthController::class, 'loginPost'],
+            '/logout'                        => [AuthController::class, 'logout'],
+            '/solicitud/crear'               => [SolicitudController::class, 'crearPost'],
+            '/api/notificaciones/leer-todas' => [NotificacionController::class, 'marcarTodasLeidas'],
         ],
     ];
 
@@ -31,10 +35,11 @@ final class Router
             '#^/solicitud/(\d+)/editar$#' => [SolicitudController::class, 'editarForm'],
         ],
         'POST' => [
-            '#^/solicitud/(\d+)/editar$#'  => [SolicitudController::class, 'editarPost'],
-            '#^/solicitud/(\d+)/eliminar$#' => [SolicitudController::class, 'eliminar'],
-            '#^/solicitud/(\d+)/jefe$#'     => [SolicitudController::class, 'gestionJefePost'],
-            '#^/solicitud/(\d+)/rrhh$#'     => [SolicitudController::class, 'gestionRrhhPost'],
+            '#^/solicitud/(\d+)/editar$#'      => [SolicitudController::class, 'editarPost'],
+            '#^/solicitud/(\d+)/eliminar$#'   => [SolicitudController::class, 'eliminar'],
+            '#^/solicitud/(\d+)/jefe$#'       => [SolicitudController::class, 'gestionJefePost'],
+            '#^/solicitud/(\d+)/rrhh$#'       => [SolicitudController::class, 'gestionRrhhPost'],
+            '#^/api/notificaciones/(\d+)/leer$#' => [NotificacionController::class, 'marcarLeida'],
         ],
     ];
 

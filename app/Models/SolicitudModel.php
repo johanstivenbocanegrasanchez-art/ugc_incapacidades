@@ -112,6 +112,18 @@ final class SolicitudModel extends Model
         ) ?: [];
     }
 
+    public function getGestionadasByJefe(string $nit): array
+    {
+        return $this->db->query(
+            "SELECT * FROM ICEBERG.SOLICITUDES_PERMISOS
+             WHERE NIT_JEFE=:nit AND ACTIVO=1
+               AND ESTADO IN ('APROBADO_JEFE', 'RECHAZADO_JEFE', 'APROBADO_RRHH', 'RECHAZADO_RRHH')
+             ORDER BY FECHA_GESTION_JEFE DESC
+             FETCH FIRST 50 ROWS ONLY",
+            [':nit' => $nit]
+        ) ?: [];
+    }
+
     public function getPendientesRRHH(): array
     {
         return $this->db->query(

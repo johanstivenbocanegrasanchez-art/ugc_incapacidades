@@ -10,6 +10,7 @@ use Core\Session;
 use Core\Security;
 use App\Models\EmpleadoModel;
 use App\Models\SolicitudModel;
+use App\Services\NotificacionService;
 
 final class SolicitudController extends Controller
 {
@@ -69,9 +70,22 @@ final class SolicitudController extends Controller
             $data['ruta_archivo'] = $rutaArchivo;
         }
 
-        $ok = (new SolicitudModel())->crear($data);
+        $model = new SolicitudModel();
+        $ok = $model->crear($data);
 
         if ($ok) {
+            // Obtener el ID de la solicitud recién creada
+            $idSolicitud = $this->getUltimaSolicitudId($user['cedula']);
+
+            // Notificar al jefe
+            $notificacionService = new NotificacionService();
+            $notificacionService->notificarNuevaSolicitud(
+                $idSolicitud,
+                $user['cedula'],
+                $nitJefe,
+                $data['tipo_solicitud']
+            );
+
             Flash::success('Solicitud creada correctamente.');
         } else {
             Flash::error('Error al crear la solicitud.');
@@ -201,9 +215,25 @@ final class SolicitudController extends Controller
             }
         }
 
-        $ok = (new SolicitudModel())->editar((int) $id, $user['cedula'], $data);
+        $model = new SolicitudModel();
+        $solicitudActual = $model->getById((int) $id);
+
+        $ok = $model->editar((int) $id, $user['cedula'], $data);
 
         if ($ok) {
+            // Notificar al jefe que la solicitud fue editada
+            if ($solicitudActual) {
+                $notificacionService = new NotificacionService();
+                $nitJefe = $data['nit_jefe_actualizado'] ?? $solicitudActual['NIT_JEFE'] ?? null;
+                if ($nitJefe) {
+                    $notificacionService->notificarSolicitudEditada(
+                        (int) $id,
+                        $user['cedula'],
+                        $nitJefe,
+                        $data['tipo_solicitud'] ?? $solicitudActual['TIPO_SOLICITUD']
+                    );
+                }
+            }
             Flash::success('Solicitud actualizada.');
         } else {
             Flash::error('Solo puedes editar solicitudes pendientes.');
@@ -255,11 +285,42 @@ final class SolicitudController extends Controller
         $obs = Security::sanitizeString($_POST['observacion_jefe'] ?? '');
         $accion = Security::sanitizeString($_POST['accion'] ?? '');
 
+        // Obtener datos de la solicitud antes de gestionar para las notificaciones
+        $solicitud = $model->getById((int) $id);
+
         $ok = ($accion === 'aprobar')
             ? $model->aprobarJefe((int) $id, $user['cedula'], $obs)
             : $model->rechazarJefe((int) $id, $user['cedula'], $obs);
 
-        if ($ok) {
+        if ($ok && $solicitud) {
+            $notificacionService = new NotificacionService();
+
+            if ($accion === 'aprobar') {
+                // Notificar al empleado que fue aprobada
+                $notificacionService->notificarAprobacionJefe(
+                    (int) $id,
+                    $solicitud['NIT_EMPLEADO'],
+                    $user['cedula'],
+                    $solicitud['TIPO_SOLICITUD']
+                );
+
+                // Notificar a RRHH para revisión
+                $notificacionService->notificarRevisionRRHH(
+                    (int) $id,
+                    $solicitud['NIT_EMPLEADO'],
+                    $solicitud['TIPO_SOLICITUD']
+                );
+            } else {
+                // Notificar al empleado que fue rechazada
+                $notificacionService->notificarRechazoJefe(
+                    (int) $id,
+                    $solicitud['NIT_EMPLEADO'],
+                    $user['cedula'],
+                    $solicitud['TIPO_SOLICITUD'],
+                    $obs
+                );
+            }
+
             Flash::success('Gestión guardada.');
         } else {
             Flash::error('No se pudo gestionar.');
@@ -278,16 +339,49 @@ final class SolicitudController extends Controller
         $obs = Security::sanitizeString($_POST['observacion_rrhh'] ?? '');
         $accion = Security::sanitizeString($_POST['accion'] ?? '');
 
+        // Obtener datos de la solicitud antes de gestionar para las notificaciones
+        $solicitud = $model->getById((int) $id);
+
         $ok = ($accion === 'aprobar')
             ? $model->aprobarRRHH((int) $id, $user['cedula'], $obs)
             : $model->rechazarRRHH((int) $id, $user['cedula'], $obs);
 
-        if ($ok) {
+        if ($ok && $solicitud) {
+            $notificacionService = new NotificacionService();
+
+            if ($accion === 'aprobar') {
+                // Notificar a empleado y jefe que RRHH aprobó
+                $notificacionService->notificarAprobacionRRHH(
+                    (int) $id,
+                    $solicitud['NIT_EMPLEADO'],
+                    $solicitud['NIT_JEFE'],
+                    $solicitud['TIPO_SOLICITUD']
+                );
+            } else {
+                // Notificar a empleado y jefe que RRHH rechazó
+                $notificacionService->notificarRechazoRRHH(
+                    (int) $id,
+                    $solicitud['NIT_EMPLEADO'],
+                    $solicitud['NIT_JEFE'],
+                    $solicitud['TIPO_SOLICITUD'],
+                    $obs
+                );
+            }
+
             Flash::success('Gestión RRHH guardada.');
         } else {
             Flash::error('No se pudo gestionar.');
         }
 
         $this->redirect('/dashboard');
+    }
+
+    /**
+     * Obtener el ID de la última solicitud creada por un empleado
+     */
+    private function getUltimaSolicitudId(string $nitEmpleado): int
+    {
+        $rows = (new SolicitudModel())->getByEmpleado($nitEmpleado);
+        return !empty($rows) ? (int) $rows[0]['ID'] : 0;
     }
 }
