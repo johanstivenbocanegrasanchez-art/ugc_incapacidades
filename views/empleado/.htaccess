@@ -1,9 +1,8 @@
-
 RewriteEngine On
 
-RewriteBase /ugc_incapacidades/
-
+# Si no es archivo real
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule ^ index.php [QSA,L]
 
+# Redirigir todo a index.php
+RewriteRule ^ index.php [QSA,L]

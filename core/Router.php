@@ -8,6 +8,8 @@ use App\Controllers\AuthController;
 use App\Controllers\DashboardController;
 use App\Controllers\SolicitudController;
 use App\Controllers\NotificacionController;
+use App\Exportar\Admin\ExportController;
+   
 
 final class Router
 {
@@ -20,6 +22,8 @@ final class Router
             '/solicitudes'                   => [DashboardController::class, 'listar'],
             '/api/notificaciones/contador'   => [NotificacionController::class, 'contador'],
             '/api/notificaciones'            => [NotificacionController::class, 'listar'],
+            '/exportar/todas/excel'           => [ExportController::class, 'todasExcel'],
+
         ],
         'POST' => [
             '/login'                         => [AuthController::class, 'loginPost'],
