@@ -35,7 +35,8 @@ final class DashboardController extends Controller
             case ROL_JEFE:
                 $pendientes     = $model->getPendientesJefe($user['cedula']);
                 $misSolicitudes = $model->getByEmpleado($user['cedula']);
-                $this->render('jefe/dashboard', compact('user', 'pendientes', 'misSolicitudes', 'tipos'));
+                $gestionadas    = $model->getGestionadasByJefe($user['cedula']);
+                $this->render('jefe/dashboard', compact('user', 'pendientes', 'misSolicitudes', 'gestionadas', 'tipos'));
                 break;
 
             default:
