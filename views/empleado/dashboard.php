@@ -9,13 +9,28 @@ $aprobadas = count(array_filter($solicitudes, fn($s) => in_array($s['ESTADO'], [
 $pendientes = count(array_filter($solicitudes, fn($s) => $s['ESTADO'] === 'PENDIENTE_JEFE'));
 $rechazadas = count(array_filter($solicitudes, fn($s) => in_array($s['ESTADO'], ['RECHAZADO_JEFE', 'RECHAZADO_RRHH'])));
 ?>
-<div class="page-header animate-fade-down">
+
+<div class="page-header animate-fade-down" style="display:flex;justify-content:space-between;align-items:center;">
+  
   <div>
-    <h1 class="page-title">Mis Solicitudes</h1>
-    <p style="color:var(--muted);font-size:14px;margin-top:4px">Gestiona tus permisos e incapacidades</p>
+    <h1 class="page-title">Panel de Administración</h1>
+    <p style="color:var(--muted);font-size:14px;margin-top:4px">
+      Vista general del sistema de solicitudes
+    </p>
   </div>
-  <a href="<?= $baseUrl ?>/solicitud/crear" class="btn btn-green">+ Nueva solicitud</a>
+
+  <div style="display:flex;gap:10px;">
+    <a href="<?= $baseUrl ?>/solicitud/crear" class="btn btn-green">
+      + Nueva solicitud
+    </a>
+
+    <a href="<?= $baseUrl ?>/exportar/todas/excel" class="btn btn-green">
+      Descargar reporte Excel
+    </a>
+  </div>
+
 </div>
+
 
 <?php if (!empty($solicitudes)): ?>
 <div class="stats-row animate-fade-up" style="grid-template-columns:repeat(4,1fr)">
