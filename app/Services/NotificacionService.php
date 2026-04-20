@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services;
 
 use Core\Config;
+use Core\AppLogger;
 use App\Models\NotificacionModel;
 use App\Models\EmpleadoModel;
 
@@ -78,13 +79,11 @@ final class NotificacionService
         // Notificar a todos los usuarios de RRHH
         $usuariosRRHH = $this->getUsuariosRRHH();
 
-        // DEBUG: Log para diagnosticar problema
-        error_log("[NOTIFICACION DEBUG] Solicitud #{$idSolicitud} - Usuarios RRHH encontrados: " . json_encode($usuariosRRHH));
-        error_log("[NOTIFICACION DEBUG] Mensaje: {$mensaje}");
+        AppLogger::debug('NotificarRevisionRRHH', ['solicitud' => $idSolicitud, 'rrhh_count' => count($usuariosRRHH), 'mensaje' => $mensaje]);
 
         foreach ($usuariosRRHH as $nitRRHH) {
             $resultado = $this->model->crear($nitRRHH, 'REVISION_RRHH', $mensaje, $idSolicitud);
-            error_log("[NOTIFICACION DEBUG] Notificación para {$nitRRHH}: " . ($resultado ? 'OK' : 'FALLÓ'));
+            AppLogger::debug('Notificación RRHH', ['nit' => $nitRRHH, 'ok' => $resultado]);
         }
     }
 
@@ -186,11 +185,11 @@ final class NotificacionService
 
         // Buscar todos los empleados en centros de costo de RRHH en Oracle
         $empleadosRRHH = $this->empleadoModel->getPorCentrosCosto(CC_RRHH);
-        error_log("[NOTIFICACION DEBUG] Empleados RRHH desde Oracle: " . json_encode($empleadosRRHH));
+        AppLogger::debug('Empleados RRHH desde Oracle', ['count' => count($empleadosRRHH)]);
 
         // Asegurar que sea array (por si hay error y devuelve false/null)
         if (!is_array($empleadosRRHH)) {
-            error_log("[NOTIFICACION DEBUG] getPorCentrosCosto no devolvió array, usando array vacío");
+            AppLogger::warning('getPorCentrosCosto no devolvió array', ['result_type' => gettype($empleadosRRHH)]);
             $empleadosRRHH = [];
         }
 
@@ -200,26 +199,26 @@ final class NotificacionService
 
         // En modo desarrollo, SIEMPRE agregar usuarios de prueba que sean RRHH/Admin
         // para que puedan recibir notificaciones durante las pruebas
-        error_log("[NOTIFICACION DEBUG] isDev: " . (Config::isDev() ? 'true' : 'false') . " - RRHH count: " . count($rrhh));
+        AppLogger::debug('isDev check', ['isDev' => Config::isDev(), 'rrhh_count' => count($rrhh)]);
 
         if (Config::isDev()) {
-            error_log("[NOTIFICACION DEBUG] Agregando usuarios de prueba RRHH/Admin...");
+            AppLogger::debug('Agregando usuarios de prueba RRHH/Admin');
             foreach (USUARIOS_PRUEBA as $cedula => $datos) {
                 // Forzar string para evitar TypeError (las cédulas numéricas se convierten a int)
                 $cedulaStr = (string) $cedula;
                 if (($datos['rol'] ?? '') === ROL_RRHH) {
                     $rrhh[] = $cedulaStr;
-                    error_log("[NOTIFICACION DEBUG] Agregado RRHH de prueba: {$cedulaStr}");
+                    AppLogger::debug('Agregado RRHH de prueba', ['cedula' => $cedulaStr]);
                 }
                 // También incluir admins como RRHH (tienen todos los permisos)
                 if (($datos['rol'] ?? '') === ROL_ADMIN) {
                     $rrhh[] = $cedulaStr;
-                    error_log("[NOTIFICACION DEBUG] Agregado ADMIN de prueba: {$cedulaStr}");
+                    AppLogger::debug('Agregado ADMIN de prueba', ['cedula' => $cedulaStr]);
                 }
             }
         }
 
-        error_log("[NOTIFICACION DEBUG] Total RRHH a notificar: " . json_encode($rrhh));
+        AppLogger::debug('Total RRHH a notificar', ['count' => count($rrhh)]);
         return array_unique($rrhh);
     }
 }

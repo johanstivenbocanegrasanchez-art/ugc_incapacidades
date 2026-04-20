@@ -31,9 +31,33 @@ use Core\Config;
 use Core\Session;
 use Core\Security;
 use Core\Router;
+use Core\AppLogger;
 
 // Cargar configuración (incluye .env)
 require_once __DIR__ . '/config/config.php';
+
+// Iniciar logger y registrar handlers globales de error
+AppLogger::init();
+
+set_exception_handler(function (\Throwable $e): void {
+    AppLogger::exception($e);
+    http_response_code(500);
+    if (Config::isDev()) {
+        echo '<pre>' . htmlspecialchars((string) $e) . '</pre>';
+    } else {
+        echo '<h2>Error interno</h2><p>Ocurrió un problema. Intenta de nuevo más tarde.</p>';
+    }
+    exit;
+});
+
+set_error_handler(function (int $errno, string $errstr, string $errfile, int $errline): bool {
+    AppLogger::error($errstr, ['file' => $errfile . ':' . $errline, 'errno' => $errno]);
+    // En producción no mostrar errores PHP
+    if (Config::isDev()) {
+        return false; // Dejar que el handler default de PHP lo muestre
+    }
+    return true; // Suprimir en producción
+});
 
 // Iniciar sesión segura
 Session::start();

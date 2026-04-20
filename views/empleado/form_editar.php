@@ -54,7 +54,7 @@ $baseUrl    = Config::baseUrl();
             <div class="archivo-nombre"><?= htmlspecialchars(basename($s['RUTA_COMPROBANTE'])) ?></div>
             <div class="archivo-actual-label">Archivo actual</div>
           </div>
-          <a href="<?= $baseUrl ?>/<?= htmlspecialchars($s['RUTA_COMPROBANTE']) ?>" target="_blank" class="archivo-ver">Ver PDF</a>
+          <a href="<?= $baseUrl ?>/archivo/<?= $s['ID'] ?>" target="_blank" class="archivo-ver">Ver PDF</a>
         </div>
         <label class="reemplazar-label">
           <input type="checkbox" name="reemplazar_pdf" value="1" id="chkReemplazar">

@@ -43,13 +43,31 @@ final class Security
         return (float) filter_var(trim($value), FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION);
     }
 
+    public static function maxLength(string $value, int $max): string
+    {
+        return mb_strlen($value) > $max ? mb_substr($value, 0, $max) : $value;
+    }
+
     public static function applySecurityHeaders(): void
     {
         header('X-Content-Type-Options: nosniff');
         header('X-Frame-Options: SAMEORIGIN');
-        header('X-XSS-Protection: 1; mode=block');
         header('Referrer-Policy: strict-origin-when-cross-origin');
         header('Permissions-Policy: camera=(), microphone=(), geolocation=()');
+
+        // Content-Security-Policy: permitir solo recursos del mismo origen
+        // style-src y script-src incluyen 'unsafe-inline' para soporte de código inline
+        // img-src permite data: para iconos inline
+        $csp = "default-src 'self'; "
+             . "script-src 'self' 'unsafe-inline'; "
+             . "style-src 'self' 'unsafe-inline'; "
+             . "img-src 'self' data:; "
+             . "font-src 'self'; "
+             . "frame-ancestors 'self'; "
+             . "form-action 'self'; "
+             . "base-uri 'self'; "
+             . "object-src 'none'";
+        header('Content-Security-Policy: ' . $csp);
 
         if (Config::get('APP_ENV') === 'production') {
             header('Strict-Transport-Security: max-age=31536000; includeSubDomains');

@@ -1,16 +1,17 @@
 from mcp.server.fastmcp import FastMCP
 import oracledb
 import json
+import os
 
 # Inicializamos el servidor MCP
 mcp = FastMCP("Oracle_ICEBERG_PRUEBA")
 
-# Credenciales de PRUEBA (Tomadas de tu configuración PHP)
-DB_HOST = "172.28.5.101"
-DB_PORT = "1521"
-DB_USER = "iceberg"
-DB_PASSWORD = "iceberg0"
-DB_SERVICE = "UGC"
+# Credenciales desde variables de entorno (configurar en .env o sistema)
+DB_HOST = os.environ.get("ORACLE_HOST", "localhost")
+DB_PORT = os.environ.get("ORACLE_PORT", "1521")
+DB_USER = os.environ.get("ORACLE_USER", "")
+DB_PASSWORD = os.environ.get("ORACLE_PASS", "")
+DB_SERVICE = os.environ.get("ORACLE_SERVICE", "")
 
 def get_connection():
     """Establece la conexión con la base de datos Oracle."""

@@ -29,7 +29,7 @@ $baseUrl = Config::baseUrl();
           <div class="archivo-info">
             <div class="archivo-nombre"><?= htmlspecialchars(basename($solicitud['RUTA_COMPROBANTE'])) ?></div>
           </div>
-          <a href="<?= $baseUrl ?>/<?= htmlspecialchars($solicitud['RUTA_COMPROBANTE']) ?>" target="_blank" class="archivo-ver">Ver PDF</a>
+          <a href="<?= $baseUrl ?>/archivo/<?= $solicitud['ID'] ?>" target="_blank" class="archivo-ver">Ver PDF</a>
         </div>
       </dd>
     </div>
