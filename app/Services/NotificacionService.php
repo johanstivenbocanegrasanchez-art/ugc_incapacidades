@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Services;
 
 use Core\Config;
-use Core\AppLogger;
 use App\Models\NotificacionModel;
 use App\Models\EmpleadoModel;
 
@@ -79,11 +78,8 @@ final class NotificacionService
         // Notificar a todos los usuarios de RRHH
         $usuariosRRHH = $this->getUsuariosRRHH();
 
-        AppLogger::debug('NotificarRevisionRRHH', ['solicitud' => $idSolicitud, 'rrhh_count' => count($usuariosRRHH), 'mensaje' => $mensaje]);
-
         foreach ($usuariosRRHH as $nitRRHH) {
-            $resultado = $this->model->crear($nitRRHH, 'REVISION_RRHH', $mensaje, $idSolicitud);
-            AppLogger::debug('Notificación RRHH', ['nit' => $nitRRHH, 'ok' => $resultado]);
+            $this->model->crear($nitRRHH, 'REVISION_RRHH', $mensaje, $idSolicitud);
         }
     }
 

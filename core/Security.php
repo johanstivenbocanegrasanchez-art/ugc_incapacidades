@@ -57,16 +57,18 @@ final class Security
 
         // Content-Security-Policy: permitir solo recursos del mismo origen
         // style-src y script-src incluyen 'unsafe-inline' para soporte de código inline
-        // img-src permite data: para iconos inline
-        $csp = "default-src 'self'; "
+        // img-src permite data: y blob: para iconos inline y previsualización de PDFs
+        // object-src permite blob: para visualización de PDFs en el navegador
+        $csp = "default-src 'self' blob:; "
              . "script-src 'self' 'unsafe-inline'; "
              . "style-src 'self' 'unsafe-inline'; "
-             . "img-src 'self' data:; "
+             . "img-src 'self' data: blob:; "
              . "font-src 'self'; "
+             . "frame-src 'self' blob:; "
              . "frame-ancestors 'self'; "
              . "form-action 'self'; "
              . "base-uri 'self'; "
-             . "object-src 'none'";
+             . "object-src 'self' blob:";
         header('Content-Security-Policy: ' . $csp);
 
         if (Config::get('APP_ENV') === 'production') {

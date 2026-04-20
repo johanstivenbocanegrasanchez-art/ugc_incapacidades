@@ -13,18 +13,17 @@ final class NotificacionModel extends Model
      */
     public function crear(string $nitDestinatario, string $tipo, string $mensaje, int $idSolicitud): bool
     {
-        return $this->db->execute(
-            "INSERT INTO ICEBERG.NOTIFICACIONES
+        $sql = "INSERT INTO ICEBERG.NOTIFICACIONES
                 (NIT_DESTINATARIO, TIPO, MENSAJE, ID_SOLICITUD, LEIDA, FECHA_CREACION)
              VALUES
-                (:nit, :tipo, :mensaje, :solicitud, 0, SYSDATE)",
-            [
-                ':nit'       => $nitDestinatario,
-                ':tipo'      => $tipo,
-                ':mensaje'   => $mensaje,
-                ':solicitud' => $idSolicitud,
-            ]
-        );
+                (:nit, :tipo, :mensaje, :solicitud, 0, SYSDATE)";
+
+        return $this->db->execute($sql, [
+            ':nit'       => $nitDestinatario,
+            ':tipo'      => $tipo,
+            ':mensaje'   => $mensaje,
+            ':solicitud' => $idSolicitud,
+        ]);
     }
 
     /**

@@ -106,11 +106,12 @@ final class SolicitudController extends Controller
             'ruta_archivo'      => null,
         ];
 
-        // Procesar archivo PDF si se ha subido
+        // Procesar archivo PDF (obligatorio)
         $rutaArchivo = $this->procesarArchivoPDF($user['cedula']);
-        if ($rutaArchivo !== false) {
-            $data['ruta_archivo'] = $rutaArchivo;
+        if ($rutaArchivo === false) {
+            $this->redirect('/solicitud/crear');
         }
+        $data['ruta_archivo'] = $rutaArchivo;
 
         $model = new SolicitudModel();
         $ok = $model->crear($data);
@@ -139,7 +140,8 @@ final class SolicitudController extends Controller
     private function procesarArchivoPDF(string $nitEmpleado): string|false
     {
         if (!isset($_FILES['documento_pdf']) || $_FILES['documento_pdf']['error'] === UPLOAD_ERR_NO_FILE) {
-            return null; // No hay archivo, es opcional
+            Flash::error('El documento PDF es obligatorio.');
+            return false;
         }
 
         $archivo = $_FILES['documento_pdf'];
@@ -178,16 +180,45 @@ final class SolicitudController extends Controller
         // Crear directorio de almacenamiento fuera del acceso web directo
         $storageDir = __DIR__ . '/../../storage';
         $uploadDir  = $storageDir . '/solicitudes/';
+
+        // Debug: verificar rutas
+        error_log("[PDF Debug] storageDir: {$storageDir}, uploadDir: {$uploadDir}");
+        error_log("[PDF Debug] __DIR__: " . __DIR__);
+
         if (!is_dir($storageDir)) {
-            mkdir($storageDir, 0755, true);
+            if (!mkdir($storageDir, 0755, true)) {
+                error_log("[PDF Debug] Error al crear storageDir: {$storageDir}");
+                Flash::error('Error al crear directorio de almacenamiento.');
+                return false;
+            }
         }
+
+        // Verificar permisos de escritura
+        if (!is_writable($storageDir)) {
+            error_log("[PDF Debug] storageDir no tiene permisos de escritura: {$storageDir}");
+            Flash::error('Error de permisos en directorio de almacenamiento.');
+            return false;
+        }
+
         // Proteger directorio con .htaccess (denegar acceso directo por URL)
         $htaccessPath = $storageDir . '/.htaccess';
         if (!file_exists($htaccessPath)) {
             file_put_contents($htaccessPath, "<IfModule mod_authz_core_module>\n  Require all denied\n</IfModule>\n<IfModule !mod_authz_core_module>\n  Deny from all\n</IfModule>\n");
         }
+
         if (!is_dir($uploadDir)) {
-            mkdir($uploadDir, 0755, true);
+            if (!mkdir($uploadDir, 0755, true)) {
+                error_log("[PDF Debug] Error al crear uploadDir: {$uploadDir}");
+                Flash::error('Error al crear subdirectorio de solicitudes.');
+                return false;
+            }
+        }
+
+        // Verificar permisos de escritura en uploadDir
+        if (!is_writable($uploadDir)) {
+            error_log("[PDF Debug] uploadDir no tiene permisos de escritura: {$uploadDir}");
+            Flash::error('Error de permisos en subdirectorio de solicitudes.');
+            return false;
         }
 
         // Generar nombre único seguro
@@ -203,10 +234,16 @@ final class SolicitudController extends Controller
         $rutaDestino = $uploadDir . $nombreUnico;
 
         // Mover archivo
+        error_log("[PDF Debug] Intentando mover archivo: tmp={$archivo['tmp_name']} -> dest={$rutaDestino}");
         if (!move_uploaded_file($archivo['tmp_name'], $rutaDestino)) {
-            Flash::error('Error al guardar el archivo.');
+            $error = error_get_last();
+            error_log("[PDF Debug] Error al mover archivo: " . ($error['message'] ?? 'Unknown error'));
+            error_log("[PDF Debug] tmp_name existe: " . (file_exists($archivo['tmp_name']) ? 'SI' : 'NO'));
+            error_log("[PDF Debug] destino es escribible: " . (is_writable(dirname($rutaDestino)) ? 'SI' : 'NO'));
+            Flash::error('Error al guardar el archivo físico.');
             return false;
         }
+        error_log("[PDF Debug] Archivo movido exitosamente a: {$rutaDestino}");
 
         // Retornar ruta relativa para almacenar en BD
         return 'storage/solicitudes/' . $nombreUnico;
@@ -394,24 +431,41 @@ final class SolicitudController extends Controller
         $nombreArchivo = basename($solicitud['RUTA_COMPROBANTE']);
         $baseDir = dirname(__DIR__, 2);
 
+        error_log("[PDF Debug servirArchivo] ID={$id}, RutaBD={$solicitud['RUTA_COMPROBANTE']}, baseDir={$baseDir}");
+
         // Buscar en storage/ (ubicación actual)
         $rutaAbsoluta = $baseDir . '/storage/solicitudes/' . $nombreArchivo;
+        error_log("[PDF Debug servirArchivo] Intentando ruta1: {$rutaAbsoluta}, existe=" . (file_exists($rutaAbsoluta) ? 'SI' : 'NO'));
 
         // Si no existe, buscar en uploads/ (ubicación legacy)
         if (!file_exists($rutaAbsoluta)) {
             $rutaAbsoluta = $baseDir . '/uploads/solicitudes/' . $nombreArchivo;
+            error_log("[PDF Debug servirArchivo] Intentando ruta2: {$rutaAbsoluta}, existe=" . (file_exists($rutaAbsoluta) ? 'SI' : 'NO'));
         }
 
         if (!file_exists($rutaAbsoluta)) {
+            error_log("[PDF Debug servirArchivo] Archivo NO ENCONTRADO para ID={$id}");
             http_response_code(404);
-            exit('Archivo no encontrado.');
+            exit('Archivo no encontrado físicamente.');
         }
 
-        // Servir el archivo PDF
+        error_log("[PDF Debug servirArchivo] Archivo encontrado: {$rutaAbsoluta}, tamaño=" . filesize($rutaAbsoluta));
+
+        // Limpiar cualquier output buffering previo para evitar corrupción del PDF
+        while (ob_get_level()) {
+            ob_end_clean();
+        }
+
+        // Servir el archivo PDF con headers apropiados
+        // Nota: Se reemplazan los headers de seguridad CSP para permitir visualización inline
+        header_remove('Content-Security-Policy');
         header('Content-Type: application/pdf');
         header('Content-Disposition: inline; filename="' . $nombreArchivo . '"');
         header('Content-Length: ' . filesize($rutaAbsoluta));
         header('Cache-Control: private, max-age=0, must-revalidate');
+        header('X-Content-Type-Options: nosniff');
+        header('Accept-Ranges: bytes');
+
         readfile($rutaAbsoluta);
         exit;
     }

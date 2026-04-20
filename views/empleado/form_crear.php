@@ -56,9 +56,9 @@ $baseUrl    = Config::baseUrl();
     </div>
     <div class="form-group"><label>Observaciones</label><textarea name="observaciones" rows="4" placeholder="Describe el motivo..."></textarea></div>
     <div class="form-group">
-      <label>Documento adjunto (PDF, máx. 5MB)</label>
+      <label>Documento adjunto (PDF, máx. 5MB) *</label>
       <div class="file-upload-container">
-        <input type="file" name="documento_pdf" id="documento_pdf" accept=".pdf,application/pdf" />
+        <input type="file" name="documento_pdf" id="documento_pdf" accept=".pdf,application/pdf" required />
         <div class="file-upload-hint">
           <span class="hint-icon">📄</span>
           <span>Formato permitido: PDF. Tamaño máximo: 5MB</span>
