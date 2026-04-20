@@ -4,30 +4,23 @@ use Core\Security;
 
 require_once __DIR__ . '/../shared/badge_estado.php';
 $baseUrl = Config::baseUrl();
-
-$aprobadas = count(array_filter($solicitudes, fn($s) => in_array($s['ESTADO'], ['APROBADO_JEFE', 'APROBADO_RRHH'])));
-$pendientes = count(array_filter($solicitudes, fn($s) => $s['ESTADO'] === 'PENDIENTE_JEFE'));
-$rechazadas = count(array_filter($solicitudes, fn($s) => in_array($s['ESTADO'], ['RECHAZADO_JEFE', 'RECHAZADO_RRHH'])));
 ?>
-
 <div class="page-header animate-fade-down" style="display:flex;justify-content:space-between;align-items:center;">
   <div>
-    <h1 class="page-title">Mis Solicitudes</h1>
+    <h1 class="page-title"><?= htmlspecialchars($titulo) ?></h1>
     <p style="color:var(--muted);font-size:14px;margin-top:4px">
-      Consulta y gestiona tus solicitudes registradas
+      <?= htmlspecialchars($subtitulo ?? 'Consulta detallada de solicitudes') ?>
     </p>
   </div>
 
   <div style="display:flex;gap:10px;">
-    <a href="<?= $baseUrl ?>/solicitud/crear" class="btn btn-green">
-      + Nueva solicitud
-    </a>
+    <a href="<?= $baseUrl ?>/dashboard" class="btn btn-green">Volver al dashboard</a>
+    <a href="<?= $baseUrl ?>/solicitud/crear" class="btn btn-green">+ Nueva solicitud</a>
   </div>
 </div>
 
-<?php if (!empty($solicitudes)): ?>
-<div class="stats-row animate-fade-up" style="grid-template-columns:repeat(4,1fr)">
-  <a href="<?= $baseUrl ?>/empleado/solicitudes?tipo=total" class="stat-card stat-card-link">
+<div class="stats-row animate-fade-up" style="grid-template-columns:repeat(3,1fr)">
+  <div class="stat-card">
     <div class="stat-icon">
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
@@ -35,48 +28,36 @@ $rechazadas = count(array_filter($solicitudes, fn($s) => in_array($s['ESTADO'], 
       </svg>
     </div>
     <div class="num"><?= count($solicitudes) ?></div>
-    <div class="lbl">Total</div>
-  </a>
+    <div class="lbl">Solicitudes encontradas</div>
+  </div>
 
-  <a href="<?= $baseUrl ?>/empleado/solicitudes?tipo=pendientes" class="stat-card stat-card-link">
+  <div class="stat-card">
     <div class="stat-icon">
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <circle cx="12" cy="12" r="10"/>
-        <polyline points="12 6 12 12 16 14"/>
+        <path d="M12 6v6l4 2"/>
       </svg>
     </div>
-    <div class="num"><?= $pendientes ?></div>
-    <div class="lbl">Pendientes</div>
-  </a>
+    <div class="num"><?= htmlspecialchars($nombreFiltro ?? 'General') ?></div>
+    <div class="lbl">Filtro aplicado</div>
+  </div>
 
-  <a href="<?= $baseUrl ?>/empleado/solicitudes?tipo=aprobadas" class="stat-card stat-card-link">
+  <div class="stat-card">
     <div class="stat-icon">
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
-        <polyline points="22 4 12 14.01 9 11.01"/>
+        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+        <circle cx="9" cy="7" r="4"/>
+        <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
       </svg>
     </div>
-    <div class="num"><?= $aprobadas ?></div>
-    <div class="lbl">Aprobadas</div>
-  </a>
-
-  <a href="<?= $baseUrl ?>/empleado/solicitudes?tipo=rechazadas" class="stat-card stat-card-link">
-    <div class="stat-icon">
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <circle cx="12" cy="12" r="10"/>
-        <line x1="15" y1="9" x2="9" y2="15"/>
-        <line x1="9" y1="9" x2="15" y2="15"/>
-      </svg>
-    </div>
-    <div class="num"><?= $rechazadas ?></div>
-    <div class="lbl">Rechazadas</div>
-  </a>
+    <div class="num">Empleado</div>
+    <div class="lbl">Vista actual</div>
+  </div>
 </div>
-<?php endif; ?>
 
 <?php if (empty($solicitudes)): ?>
   <div class="empty-state animate-fade-up">
-    <p>Aún no tienes solicitudes.<br>Haz clic en <strong>Nueva solicitud</strong> para comenzar.</p>
+    <p>No hay solicitudes para mostrar en esta categoría.</p>
   </div>
 <?php else: ?>
 <div class="ugc-table-wrap animate-fade-up">
@@ -92,7 +73,7 @@ $rechazadas = count(array_filter($solicitudes, fn($s) => in_array($s['ESTADO'], 
       <td data-label="Estado"><?= badgeEstado($s['ESTADO']) ?></td>
       <td class="actions-cell">
         <a href="<?= $baseUrl ?>/solicitud/<?= $s['ID'] ?>/ver" class="btn btn-outline btn-sm">Ver</a>
-        <?php if ($s['ESTADO'] === 'PENDIENTE_JEFE'): ?>
+        <?php if (($s['ESTADO'] ?? '') === 'PENDIENTE_JEFE'): ?>
           <a href="<?= $baseUrl ?>/solicitud/<?= $s['ID'] ?>/editar" class="btn btn-gray btn-sm">Editar</a>
           <form method="post" action="<?= $baseUrl ?>/solicitud/<?= $s['ID'] ?>/eliminar" class="inline-form" onsubmit="return confirm('¿Eliminar esta solicitud?')">
             <?= Security::csrfField() ?>
