@@ -9,6 +9,7 @@ use Core\Config;
 use Core\Flash;
 use Core\Session;
 use Core\Security;
+use Core\Validator;
 use Config\Ldap;
 use App\Models\EmpleadoModel;
 
@@ -27,19 +28,37 @@ final class AuthController extends Controller
         $this->render('auth/login', compact('error', 'devUsuarios'), 'auth');
     }
 
+    private const LOGIN_MAX_ATTEMPTS = 5;
+    private const LOGIN_LOCKOUT_SECONDS = 300;
+
     public function loginPost(): void
     {
         $cedula   = Security::sanitizeString($_POST['cedula'] ?? '');
         $password = trim($_POST['password'] ?? '');
 
-        if (!$cedula || !$password) {
-            $_SESSION['login_error'] = 'Ingresa tu cédula y contraseña.';
+        // Validación de formato
+        $v = Validator::make()
+            ->required($cedula, 'cedula', 'Ingresa tu número de documento.')
+            ->alphaNumeric($cedula, 'cedula', 'El documento solo debe contener números y letras.')
+            ->maxLength($cedula, 20, 'cedula')
+            ->required($password, 'password', 'Ingresa tu contraseña.');
+
+        if ($v->hasErrors()) {
+            $_SESSION['login_error'] = reset($v->getErrors());
+            $this->redirect('/login');
+        }
+
+        // Rate limiting por IP (desactivado en modo desarrollo)
+        if (!Config::isDev() && !$this->checkLoginRateLimit()) {
+            $_SESSION['login_error'] = 'Demasiados intentos. Intenta de nuevo en 5 minutos.';
             $this->redirect('/login');
         }
 
         // Modo desarrollo: usuarios de prueba
-        if (Config::isDev() && isset(USUARIOS_PRUEBA[$cedula]) && $password === 'prueba123') {
-            Session::setUser(USUARIOS_PRUEBA[$cedula]);
+        if (Config::isDev() && isset(USUARIOS_PRUEBA[(string) $cedula]) && $password === 'prueba123') {
+            $this->registerFailedLogin(false); // Login exitoso, limpiar contador
+            session_regenerate_id(true);
+            Session::setUser(USUARIOS_PRUEBA[(string) $cedula]);
             $this->redirect('/dashboard');
             return;
         }
@@ -47,10 +66,15 @@ final class AuthController extends Controller
         // Autenticación LDAP
         $ldap = Ldap::authenticate($cedula, $password);
         if (!$ldap) {
+            $this->registerFailedLogin(true);
             $_SESSION['login_error'] = 'Credenciales incorrectas.';
             $this->redirect('/login');
             return;
         }
+
+        // Login exitoso: limpiar rate limit y regenerar session ID
+        $this->registerFailedLogin(false);
+        session_regenerate_id(true);
 
         // Obtener datos del empleado desde Oracle
         $empleadoModel = new EmpleadoModel();
@@ -74,6 +98,33 @@ final class AuthController extends Controller
         ]);
 
         $this->redirect('/dashboard');
+    }
+
+    private function checkLoginRateLimit(): bool
+    {
+        $key = 'login_attempts_' . ($_SERVER['REMOTE_ADDR'] ?? 'unknown');
+        $attempts = (int) ($_SESSION[$key] ?? 0);
+        $lastAttempt = (int) ($_SESSION[$key . '_time'] ?? 0);
+
+        // Si pasó el tiempo de lockout, resetear
+        if ($lastAttempt > 0 && (time() - $lastAttempt) > self::LOGIN_LOCKOUT_SECONDS) {
+            unset($_SESSION[$key], $_SESSION[$key . '_time']);
+            return true;
+        }
+
+        return $attempts < self::LOGIN_MAX_ATTEMPTS;
+    }
+
+    private function registerFailedLogin(bool $failed): void
+    {
+        $key = 'login_attempts_' . ($_SERVER['REMOTE_ADDR'] ?? 'unknown');
+
+        if ($failed) {
+            $_SESSION[$key] = (int) ($_SESSION[$key] ?? 0) + 1;
+            $_SESSION[$key . '_time'] = time();
+        } else {
+            unset($_SESSION[$key], $_SESSION[$key . '_time']);
+        }
     }
 
     public function logout(): void

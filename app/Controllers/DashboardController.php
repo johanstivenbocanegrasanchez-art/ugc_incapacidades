@@ -7,6 +7,7 @@ namespace App\Controllers;
 use Core\Controller;
 use Core\Session;
 use Core\Security;
+use Core\Validator;
 use App\Models\SolicitudModel;
 
 final class DashboardController extends Controller
@@ -51,9 +52,21 @@ final class DashboardController extends Controller
         $user  = $this->user();
         $model = new SolicitudModel();
 
+        $estado = Security::sanitizeString($_GET['estado'] ?? '');
+        $tipo   = Security::sanitizeString($_GET['tipo'] ?? '');
+
+        // Validar filtros contra whitelist
+        $estadosValidos = [ESTADO_PENDIENTE_JEFE, ESTADO_APROBADO_JEFE, ESTADO_RECHAZADO_JEFE, ESTADO_APROBADO_RRHH, ESTADO_RECHAZADO_RRHH];
+        if ($estado !== '' && !in_array($estado, $estadosValidos, true)) {
+            $estado = '';
+        }
+        if ($tipo !== '' && !in_array($tipo, array_keys(TIPOS_SOLICITUD), true)) {
+            $tipo = '';
+        }
+
         $filtros = [
-            'estado' => Security::sanitizeString($_GET['estado'] ?? ''),
-            'tipo'   => Security::sanitizeString($_GET['tipo'] ?? ''),
+            'estado' => $estado,
+            'tipo'   => $tipo,
         ];
 
         $todas = $model->getAll($filtros);

@@ -33,7 +33,15 @@ desktop.ini
 .phpunit.result.cache
 
 # Archivos subidos (si aplica)
-/uploads/
+/uploads/*
+!/uploads/.htaccess
+/storage/*
+!/storage/.htaccess
+!/storage/solicitudes/.gitkeep
+
+# Logs de aplicación
+/logs/*
+!/logs/.htaccess
 
 # XAMPP/Apache
 .htpasswd

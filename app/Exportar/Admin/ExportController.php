@@ -23,6 +23,7 @@ final class ExportController extends Controller
 
     public function todasExcel(): void
     {
+        $this->requireRole([ROL_ADMIN, ROL_RRHH]);
         $rows = (new ExportModel())->getTodasLasSolicitudes();
         $this->generarExcelPorEstado($rows, 'reporte_solicitudes');
     }

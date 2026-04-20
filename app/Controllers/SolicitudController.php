@@ -8,6 +8,7 @@ use Core\Controller;
 use Core\Flash;
 use Core\Session;
 use Core\Security;
+use Core\Validator;
 use App\Models\EmpleadoModel;
 use App\Models\SolicitudModel;
 use App\Services\NotificacionService;
@@ -68,15 +69,40 @@ final class SolicitudController extends Controller
             $this->redirect('/solicitud/crear');
         }
 
+        $tipoSolicitud = Security::sanitizeString($_POST['tipo_solicitud'] ?? '');
+        $fechaInicio   = Security::sanitizeString($_POST['fecha_inicio'] ?? '');
+        $fechaFin      = Security::sanitizeString($_POST['fecha_fin'] ?? '');
+        $duracionHoras = Security::sanitizeFloat($_POST['duracion_horas'] ?? '0') ?: null;
+        $duracionDias  = Security::sanitizeFloat($_POST['duracion_dias'] ?? '0') ?: null;
+        $observaciones = Security::sanitizeString($_POST['observaciones'] ?? '');
+
+        // Validación centralizada
+        $v = Validator::make()
+            ->required($tipoSolicitud, 'tipo_solicitud', 'Selecciona un tipo de solicitud.')
+            ->inWhitelist($tipoSolicitud, array_keys(TIPOS_SOLICITUD), 'tipo_solicitud', 'Tipo de solicitud no válido.')
+            ->required($fechaInicio, 'fecha_inicio', 'La fecha de inicio es obligatoria.')
+            ->date($fechaInicio, 'fecha_inicio')
+            ->required($fechaFin, 'fecha_fin', 'La fecha fin es obligatoria.')
+            ->date($fechaFin, 'fecha_fin')
+            ->dateAfter($fechaInicio, $fechaFin, 'fecha_fin')
+            ->range((string) ($duracionHoras ?? 0), 0, 999, 'duracion_horas')
+            ->range((string) ($duracionDias ?? 0), 0, 365, 'duracion_dias')
+            ->maxLength($observaciones, 2000, 'observaciones');
+
+        if ($v->hasErrors()) {
+            Flash::error(reset($v->getErrors()));
+            $this->redirect('/solicitud/crear');
+        }
+
         $data = [
             'nit_empleado'      => $user['cedula'],
             'nit_jefe'          => $nitJefe,
-            'tipo_solicitud'    => Security::sanitizeString($_POST['tipo_solicitud'] ?? ''),
-            'fecha_inicio'      => Security::sanitizeString($_POST['fecha_inicio'] ?? ''),
-            'fecha_fin'         => Security::sanitizeString($_POST['fecha_fin'] ?? ''),
-            'duracion_horas'    => Security::sanitizeFloat($_POST['duracion_horas'] ?? '0') ?: null,
-            'duracion_dias'     => Security::sanitizeFloat($_POST['duracion_dias'] ?? '0') ?: null,
-            'observaciones'     => Security::sanitizeString($_POST['observaciones'] ?? ''),
+            'tipo_solicitud'    => $tipoSolicitud,
+            'fecha_inicio'      => $fechaInicio,
+            'fecha_fin'         => $fechaFin,
+            'duracion_horas'    => $duracionHoras,
+            'duracion_dias'     => $duracionDias,
+            'observaciones'     => $observaciones,
             'ruta_archivo'      => null,
         ];
 
@@ -149,8 +175,17 @@ final class SolicitudController extends Controller
             return false;
         }
 
-        // Crear directorio de uploads si no existe (raíz del proyecto para acceso directo vía URL)
-        $uploadDir = __DIR__ . '/../../uploads/solicitudes/';
+        // Crear directorio de almacenamiento fuera del acceso web directo
+        $storageDir = __DIR__ . '/../../storage';
+        $uploadDir  = $storageDir . '/solicitudes/';
+        if (!is_dir($storageDir)) {
+            mkdir($storageDir, 0755, true);
+        }
+        // Proteger directorio con .htaccess (denegar acceso directo por URL)
+        $htaccessPath = $storageDir . '/.htaccess';
+        if (!file_exists($htaccessPath)) {
+            file_put_contents($htaccessPath, "<IfModule mod_authz_core_module>\n  Require all denied\n</IfModule>\n<IfModule !mod_authz_core_module>\n  Deny from all\n</IfModule>\n");
+        }
         if (!is_dir($uploadDir)) {
             mkdir($uploadDir, 0755, true);
         }
@@ -174,7 +209,7 @@ final class SolicitudController extends Controller
         }
 
         // Retornar ruta relativa para almacenar en BD
-        return 'uploads/solicitudes/' . $nombreUnico;
+        return 'storage/solicitudes/' . $nombreUnico;
     }
 
     public function editarForm(string $id): void
@@ -227,13 +262,38 @@ final class SolicitudController extends Controller
             ? Security::sanitizeString($_POST['nit_jefe_seleccionado'] ?? '')
             : null;
 
+        $tipoSolicitud = Security::sanitizeString($_POST['tipo_solicitud'] ?? '');
+        $fechaInicio   = Security::sanitizeString($_POST['fecha_inicio'] ?? '');
+        $fechaFin      = Security::sanitizeString($_POST['fecha_fin'] ?? '');
+        $duracionHoras = Security::sanitizeFloat($_POST['duracion_horas'] ?? '0') ?: null;
+        $duracionDias  = Security::sanitizeFloat($_POST['duracion_dias'] ?? '0') ?: null;
+        $observaciones = Security::sanitizeString($_POST['observaciones'] ?? '');
+
+        // Validación centralizada
+        $v = Validator::make()
+            ->required($tipoSolicitud, 'tipo_solicitud', 'Selecciona un tipo de solicitud.')
+            ->inWhitelist($tipoSolicitud, array_keys(TIPOS_SOLICITUD), 'tipo_solicitud', 'Tipo de solicitud no válido.')
+            ->required($fechaInicio, 'fecha_inicio', 'La fecha de inicio es obligatoria.')
+            ->date($fechaInicio, 'fecha_inicio')
+            ->required($fechaFin, 'fecha_fin', 'La fecha fin es obligatoria.')
+            ->date($fechaFin, 'fecha_fin')
+            ->dateAfter($fechaInicio, $fechaFin, 'fecha_fin')
+            ->range((string) ($duracionHoras ?? 0), 0, 999, 'duracion_horas')
+            ->range((string) ($duracionDias ?? 0), 0, 365, 'duracion_dias')
+            ->maxLength($observaciones, 2000, 'observaciones');
+
+        if ($v->hasErrors()) {
+            Flash::error(reset($v->getErrors()));
+            $this->redirect('/dashboard');
+        }
+
         $data = [
-            'tipo_solicitud'       => Security::sanitizeString($_POST['tipo_solicitud'] ?? ''),
-            'fecha_inicio'         => Security::sanitizeString($_POST['fecha_inicio'] ?? ''),
-            'fecha_fin'            => Security::sanitizeString($_POST['fecha_fin'] ?? ''),
-            'duracion_horas'       => Security::sanitizeFloat($_POST['duracion_horas'] ?? '0') ?: null,
-            'duracion_dias'        => Security::sanitizeFloat($_POST['duracion_dias'] ?? '0') ?: null,
-            'observaciones'        => Security::sanitizeString($_POST['observaciones'] ?? ''),
+            'tipo_solicitud'       => $tipoSolicitud,
+            'fecha_inicio'         => $fechaInicio,
+            'fecha_fin'            => $fechaFin,
+            'duracion_horas'       => $duracionHoras,
+            'duracion_dias'        => $duracionDias,
+            'observaciones'        => $observaciones,
             'nit_jefe_actualizado' => $nitJefe,
             'ruta_archivo'         => null,
         ];
@@ -307,6 +367,55 @@ final class SolicitudController extends Controller
         $this->render('shared/detalle', compact('user', 'solicitud', 'tipos'));
     }
 
+    public function servirArchivo(string $id): void
+    {
+        $this->requireLogin();
+        $user = $this->user();
+
+        $solicitud = (new SolicitudModel())->getById((int) $id);
+        if (!$solicitud || empty($solicitud['RUTA_COMPROBANTE'])) {
+            http_response_code(404);
+            exit('Archivo no encontrado.');
+        }
+
+        // Verificar permiso: empleado dueño, jefe asignado, RRHH o admin
+        $tieneAcceso = (
+            $solicitud['NIT_EMPLEADO'] === $user['cedula']
+            || $solicitud['NIT_JEFE'] === $user['cedula']
+            || in_array($user['rol'], [ROL_ADMIN, ROL_RRHH], true)
+        );
+
+        if (!$tieneAcceso) {
+            http_response_code(403);
+            exit('Sin permiso para ver este archivo.');
+        }
+
+        // Obtener solo el nombre del archivo (prevenir path traversal)
+        $nombreArchivo = basename($solicitud['RUTA_COMPROBANTE']);
+        $baseDir = dirname(__DIR__, 2);
+
+        // Buscar en storage/ (ubicación actual)
+        $rutaAbsoluta = $baseDir . '/storage/solicitudes/' . $nombreArchivo;
+
+        // Si no existe, buscar en uploads/ (ubicación legacy)
+        if (!file_exists($rutaAbsoluta)) {
+            $rutaAbsoluta = $baseDir . '/uploads/solicitudes/' . $nombreArchivo;
+        }
+
+        if (!file_exists($rutaAbsoluta)) {
+            http_response_code(404);
+            exit('Archivo no encontrado.');
+        }
+
+        // Servir el archivo PDF
+        header('Content-Type: application/pdf');
+        header('Content-Disposition: inline; filename="' . $nombreArchivo . '"');
+        header('Content-Length: ' . filesize($rutaAbsoluta));
+        header('Cache-Control: private, max-age=0, must-revalidate');
+        readfile($rutaAbsoluta);
+        exit;
+    }
+
     public function gestionJefePost(string $id): void
     {
         $this->requireRole([ROL_JEFE, ROL_ADMIN]);
@@ -316,6 +425,14 @@ final class SolicitudController extends Controller
         $model = new SolicitudModel();
         $obs = Security::sanitizeString($_POST['observacion_jefe'] ?? '');
         $accion = Security::sanitizeString($_POST['accion'] ?? '');
+
+        // Validar acción contra whitelist
+        if (!in_array($accion, ['aprobar', 'rechazar'], true)) {
+            Flash::error('Acción no válida.');
+            $this->redirect('/dashboard');
+        }
+
+        $obs = Security::maxLength($obs, 2000);
 
         // Obtener datos de la solicitud antes de gestionar para las notificaciones
         $solicitud = $model->getById((int) $id);
@@ -370,6 +487,14 @@ final class SolicitudController extends Controller
         $model = new SolicitudModel();
         $obs = Security::sanitizeString($_POST['observacion_rrhh'] ?? '');
         $accion = Security::sanitizeString($_POST['accion'] ?? '');
+
+        // Validar acción contra whitelist
+        if (!in_array($accion, ['aprobar', 'rechazar'], true)) {
+            Flash::error('Acción no válida.');
+            $this->redirect('/dashboard');
+        }
+
+        $obs = Security::maxLength($obs, 2000);
 
         // Obtener datos de la solicitud antes de gestionar para las notificaciones
         $solicitud = $model->getById((int) $id);
