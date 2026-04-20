@@ -14,21 +14,38 @@ $baseUrl = Config::baseUrl();
 </div>
 
 <div class="stats-row animate-fade-up" style="grid-template-columns:repeat(3,1fr)">
-  <div class="stat-card">
-    <div class="stat-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+  <a href="<?= $baseUrl ?>/jefe/solicitudes?tipo=pendientes" class="stat-card stat-card-link">
+    <div class="stat-icon">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"/>
+        <polyline points="12 6 12 12 16 14"/>
+      </svg>
+    </div>
     <div class="num"><?= count($pendientes) ?></div>
     <div class="lbl">Pendientes de Aprobación</div>
-  </div>
-  <div class="stat-card">
-    <div class="stat-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
+  </a>
+
+  <a href="<?= $baseUrl ?>/jefe/solicitudes?tipo=mis_solicitudes" class="stat-card stat-card-link">
+    <div class="stat-icon">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+        <polyline points="14 2 14 8 20 8"/>
+      </svg>
+    </div>
     <div class="num"><?= count($misSolicitudes) ?></div>
     <div class="lbl">Mis Solicitudes</div>
-  </div>
-  <div class="stat-card">
-    <div class="stat-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/></svg></div>
-    <div class="num"><?= count($pendientes) + count($misSolicitudes) ?></div>
-    <div class="lbl">Total a Gestión</div>
-  </div>
+  </a>
+
+  <a href="<?= $baseUrl ?>/jefe/solicitudes?tipo=gestionadas" class="stat-card stat-card-link">
+    <div class="stat-icon">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M9 11l3 3L22 4"/>
+        <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+      </svg>
+    </div>
+    <div class="num"><?= count($gestionadas) ?></div>
+    <div class="lbl">Historial Gestionado</div>
+  </a>
 </div>
 
 <div class="section-header"><h2>Solicitudes pendientes de tu aprobacion</h2></div>
