@@ -8,8 +8,17 @@ use Core\Config;
 
 final class Ldap
 {
+    private static array $lastErrors = [];
+
+    public static function getLastErrors(): array
+    {
+        return self::$lastErrors;
+    }
+
     public static function authenticate(string $cedula, string $password): ?array
     {
+        self::$lastErrors = [];
+
         $host = Config::get('LDAP_HOST', '');
         $port = Config::getInt('LDAP_PORT', 389);
         $user = Config::get('LDAP_USER', '');
@@ -18,6 +27,7 @@ final class Ldap
 
         $conn = @ldap_connect("ldap://{$host}:{$port}");
         if (!$conn) {
+            self::$lastErrors[] = 'ERROR: No se pudo conectar al servidor LDAP ' . $host . ':' . $port;
             return null;
         }
 
@@ -25,19 +35,32 @@ final class Ldap
         ldap_set_option($conn, LDAP_OPT_REFERRALS, 0);
 
         if (!@ldap_bind($conn, $user, $pass)) {
+            $error = ldap_error($conn);
+            self::$lastErrors[] = 'ERROR: Bind con cuenta de servicio falló - ' . $error;
             return null;
         }
 
-        $filter  = '(sAMAccountName=' . ldap_escape($cedula, '', LDAP_ESCAPE_FILTER) . ')';
-        $result  = ldap_search($conn, $tree, $filter, ['cn', 'mail', 'telephonenumber', 'department', 'title']);
+        // Buscar usuario por atributo uid (OpenLDAP)
+        $filter = '(uid=' . ldap_escape($cedula, '', LDAP_ESCAPE_FILTER) . ')';
+        $result = @ldap_search($conn, $tree, $filter, ['cn', 'mail', 'telephonenumber', 'department', 'title']);
+
+        if (!$result) {
+            $error = ldap_error($conn);
+            self::$lastErrors[] = 'ERROR: Búsqueda LDAP falló - ' . $error;
+            return null;
+        }
+
         $entries = ldap_get_entries($conn, $result);
 
         if ($entries['count'] < 1) {
+            self::$lastErrors[] = 'ERROR: Usuario no encontrado en LDAP';
             return null;
         }
 
         $dn = $entries[0]['dn'];
         if (!@ldap_bind($conn, $dn, $password)) {
+            $error = ldap_error($conn);
+            self::$lastErrors[] = 'ERROR: Credenciales incorrectas - ' . $error;
             return null;
         }
 

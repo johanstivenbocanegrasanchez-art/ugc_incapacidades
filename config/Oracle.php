@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Config;
 
 use Core\Config;
+use Core\AppLogger;
 
 final class Oracle
 {
@@ -64,7 +65,7 @@ final class Oracle
 
         if (!@oci_execute($stmt, OCI_DEFAULT)) {
             $error = oci_error($stmt);
-            error_log('Oracle query error: ' . ($error['message'] ?? 'Unknown'));
+            AppLogger::error('Oracle query error', ['message' => $error['message'] ?? 'Unknown', 'sql' => $sql]);
             oci_free_statement($stmt);
             return [];
         }
@@ -96,7 +97,7 @@ final class Oracle
         $result = @oci_execute($stmt, OCI_COMMIT_ON_SUCCESS);
         if (!$result) {
             $error = oci_error($stmt);
-            error_log('Oracle execute error: ' . ($error['message'] ?? 'Unknown'));
+            AppLogger::error('Oracle execute error', ['message' => $error['message'] ?? 'Unknown', 'sql' => $sql]);
         }
 
         oci_free_statement($stmt);

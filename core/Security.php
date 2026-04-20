@@ -43,13 +43,33 @@ final class Security
         return (float) filter_var(trim($value), FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION);
     }
 
+    public static function maxLength(string $value, int $max): string
+    {
+        return mb_strlen($value) > $max ? mb_substr($value, 0, $max) : $value;
+    }
+
     public static function applySecurityHeaders(): void
     {
         header('X-Content-Type-Options: nosniff');
         header('X-Frame-Options: SAMEORIGIN');
-        header('X-XSS-Protection: 1; mode=block');
         header('Referrer-Policy: strict-origin-when-cross-origin');
         header('Permissions-Policy: camera=(), microphone=(), geolocation=()');
+
+        // Content-Security-Policy: permitir solo recursos del mismo origen
+        // style-src y script-src incluyen 'unsafe-inline' para soporte de código inline
+        // img-src permite data: y blob: para iconos inline y previsualización de PDFs
+        // object-src permite blob: para visualización de PDFs en el navegador
+        $csp = "default-src 'self' blob:; "
+             . "script-src 'self' 'unsafe-inline'; "
+             . "style-src 'self' 'unsafe-inline'; "
+             . "img-src 'self' data: blob:; "
+             . "font-src 'self'; "
+             . "frame-src 'self' blob:; "
+             . "frame-ancestors 'self'; "
+             . "form-action 'self'; "
+             . "base-uri 'self'; "
+             . "object-src 'self' blob:";
+        header('Content-Security-Policy: ' . $csp);
 
         if (Config::get('APP_ENV') === 'production') {
             header('Strict-Transport-Security: max-age=31536000; includeSubDomains');

@@ -18,7 +18,7 @@ $baseUrl    = Config::baseUrl();
     <div><strong>Jefe asignado:</strong> <?= htmlspecialchars($user['nombre_jefe']) ?></div>
   </div>
   <?php endif; ?>
-  <form method="post" action="<?= $baseUrl ?>/solicitud/crear" id="formSolicitud">
+  <form method="post" action="<?= $baseUrl ?>/solicitud/crear" id="formSolicitud" enctype="multipart/form-data">
     <?= Security::csrfField() ?>
     <?php if ($esAprendiz): ?>
     <div class="form-group">
@@ -55,6 +55,28 @@ $baseUrl    = Config::baseUrl();
       <div class="form-group"><label>Duración en días</label><input type="number" name="duracion_dias" min="0" max="365" step="0.5" placeholder="Ej. 2"/></div>
     </div>
     <div class="form-group"><label>Observaciones</label><textarea name="observaciones" rows="4" placeholder="Describe el motivo..."></textarea></div>
+    <div class="form-group">
+      <label>Documento adjunto (PDF, máx. 5MB) *</label>
+      <div class="file-upload-container">
+        <input type="file" name="documento_pdf" id="documento_pdf" accept=".pdf,application/pdf" required />
+        <div class="file-upload-hint">
+          <span class="hint-icon">📄</span>
+          <span>Formato permitido: PDF. Tamaño máximo: 5MB</span>
+        </div>
+      </div>
+      <div id="pdf-preview-container" class="pdf-preview-container" style="display:none;">
+        <div class="pdf-preview-header">
+          <span class="pdf-icon">📑</span>
+          <span id="pdf-filename" class="pdf-filename"></span>
+          <span id="pdf-size" class="pdf-size"></span>
+          <button type="button" id="remove-pdf" class="remove-pdf-btn" title="Eliminar archivo">&times;</button>
+        </div>
+        <div class="pdf-preview-content">
+          <iframe id="pdf-iframe" src="" frameborder="0"></iframe>
+        </div>
+      </div>
+      <div id="file-error" class="file-error" style="display:none;"></div>
+    </div>
     <div class="form-actions">
       <button type="submit" class="btn btn-green">Enviar solicitud</button>
       <a href="<?= $baseUrl ?>/dashboard" class="btn btn-gray">Cancelar</a>
@@ -70,5 +92,74 @@ $baseUrl    = Config::baseUrl();
     if(ini.value<hoy){e.preventDefault();alert('La fecha de inicio no puede ser anterior a hoy.');return;}
     if(fin.value&&fin.value<ini.value){e.preventDefault();alert('La fecha fin no puede ser anterior al inicio.');}
   });
+
+  // File upload handling
+  const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+  const ALLOWED_TYPES = ['application/pdf', '.pdf'];
+
+  var fileInput = document.getElementById('documento_pdf');
+  var previewContainer = document.getElementById('pdf-preview-container');
+  var fileError = document.getElementById('file-error');
+  var pdfFilename = document.getElementById('pdf-filename');
+  var pdfSize = document.getElementById('pdf-size');
+  var pdfIframe = document.getElementById('pdf-iframe');
+  var removeBtn = document.getElementById('remove-pdf');
+
+  function formatFileSize(bytes) {
+    if (bytes === 0) return '0 Bytes';
+    var k = 1024;
+    var sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    var i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  }
+
+  function showError(msg) {
+    fileError.textContent = msg;
+    fileError.style.display = 'block';
+    fileInput.value = '';
+    previewContainer.style.display = 'none';
+  }
+
+  function hideError() {
+    fileError.style.display = 'none';
+    fileError.textContent = '';
+  }
+
+  function clearFile() {
+    fileInput.value = '';
+    previewContainer.style.display = 'none';
+    pdfIframe.src = '';
+    hideError();
+  }
+
+  fileInput.addEventListener('change', function() {
+    hideError();
+    var file = this.files[0];
+    if (!file) {
+      clearFile();
+      return;
+    }
+
+    // Validate file type
+    if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
+      showError('Error: Solo se permiten archivos PDF.');
+      return;
+    }
+
+    // Validate file size
+    if (file.size > MAX_FILE_SIZE) {
+      showError('Error: El archivo excede el tamaño máximo de 5MB.');
+      return;
+    }
+
+    // Show preview
+    var fileUrl = URL.createObjectURL(file);
+    pdfFilename.textContent = file.name;
+    pdfSize.textContent = formatFileSize(file.size);
+    pdfIframe.src = fileUrl;
+    previewContainer.style.display = 'block';
+  });
+
+  removeBtn.addEventListener('click', clearFile);
 })();
 </script>

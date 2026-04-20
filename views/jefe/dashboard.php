@@ -101,7 +101,6 @@ $baseUrl = Config::baseUrl();
   </table>
 </div>
 <?php endif; ?>
-
 <div class="section-header section-header--spaced"><h2>Mis solicitudes personales</h2></div>
 <?php if (empty($misSolicitudes)): ?>
   <div class="empty-state"><p>📋 No tienes solicitudes propias.</p></div>

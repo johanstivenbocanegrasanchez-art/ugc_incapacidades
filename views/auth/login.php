@@ -87,8 +87,42 @@ function togglePassword() {
   pwd.type = pwd.type === 'password' ? 'text' : 'password';
 }
 function fillLogin(cedula) {
-  document.getElementById('cedula').value = cedula;
-  document.getElementById('password').value = 'prueba123';
+  console.log('Fill login llamado con cédula:', cedula);
+
+  const cedulaField = document.getElementById('cedula');
+  const passwordField = document.getElementById('password');
+
+  if (!cedulaField || !passwordField) {
+    console.error('No se encontraron los campos del formulario');
+    alert('Error: No se pudieron encontrar los campos del formulario');
+    return;
+  }
+
+  // Limpiar primero para evitar interferencias de autofill
+  cedulaField.value = '';
+  passwordField.value = '';
+
+  // Pequeño delay para evitar que extensiones del navegador bloqueen la escritura
+  setTimeout(function() {
+    cedulaField.value = cedula;
+    passwordField.value = 'prueba123';
+
+    console.log('Campos llenados:', { cedula: cedulaField.value, password: passwordField.value ? '***' : 'vacía' });
+
+    // Forzar eventos de input para que el navegador registre los cambios
+    cedulaField.dispatchEvent(new Event('input', { bubbles: true }));
+    passwordField.dispatchEvent(new Event('input', { bubbles: true }));
+
+    // Cambiar el tipo del campo de contraseña a texto temporalmente (truco para evitar bloqueos)
+    const originalType = passwordField.type;
+    passwordField.type = 'text';
+    setTimeout(function() {
+      passwordField.type = originalType;
+    }, 100);
+
+    // Enfocar el botón de login para facilitar el siguiente paso
+    document.getElementById('btnLogin').focus();
+  }, 50);
 }
 document.getElementById('loginForm').addEventListener('submit', function() {
   const btn = document.getElementById('btnLogin');

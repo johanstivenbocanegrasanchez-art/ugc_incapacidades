@@ -79,4 +79,47 @@ final class EmpleadoModel extends Model
             [':nivel' => NIVEL_MIN_JEFE]
         ) ?: [];
     }
+
+    /**
+     * Obtener empleados por centro de costo (útil para encontrar usuarios RRHH)
+     */
+    public function getPorCentrosCosto(array $centrosCosto): array
+    {
+        if (empty($centrosCosto)) {
+            return [];
+        }
+
+        // Construir placeholders para IN clause
+        $placeholders = [];
+        $params = [];
+        foreach ($centrosCosto as $i => $cc) {
+            $placeholders[] = ':cc' . $i;
+            $params[':cc' . $i] = $cc;
+        }
+
+        $inClause = implode(', ', $placeholders);
+
+        // Construir query con IN clause dinámico
+        $sql = "SELECT NIT, TRIM(NOMBRE||' '||PRIMER_APELLIDO||' '||NVL(SEGUNDO_APELLIDO,'')) AS NOMBRE_COMPLETO,
+                    CENTRO_COSTO, NIVEL
+             FROM EMPLEADO
+             WHERE EMPRESA='BA2' AND ESTADO='A' AND CENTRO_COSTO IN ({$inClause})
+             ORDER BY NOMBRE_COMPLETO";
+
+        // Para OCI8, necesitamos pasar los parámetros de forma especial
+        // Usamos el método query con el array de binds
+        return $this->db->query($sql, $params) ?: [];
+    }
+
+    /**
+     * Verificar si un NIT pertenece a RRHH (por centro de costo)
+     */
+    public function esRRHH(string $nit): bool
+    {
+        $emp = $this->getByNit($nit);
+        if (!$emp) {
+            return false;
+        }
+        return in_array($emp['CENTRO_COSTO'] ?? '', CC_RRHH, true);
+    }
 }

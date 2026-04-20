@@ -1,3 +1,4 @@
+
 <?php
 use Core\Config;
 
@@ -34,6 +35,7 @@ $total = array_sum($stats ?? []);
   </div>
 
 </div>
+
 
 <div class="stats-row animate-fade-up">
 <?php foreach ($labels as $key => $lbl): ?>
