@@ -19,7 +19,24 @@ abstract class Controller
 
     protected function redirect(string $path): void
     {
-        header('Location: ' . Config::baseUrl() . $path);
+        // Limpiar cualquier output buffering previo para evitar errores de headers
+        while (ob_get_level()) {
+            ob_end_clean();
+        }
+
+        // Construir URL completa
+        $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+        $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+        $baseUrl = Config::baseUrl();
+
+        // Si BASE_URL ya incluye el host completo, usarlo directamente
+        if (str_starts_with($baseUrl, 'http')) {
+            $url = $baseUrl . $path;
+        } else {
+            $url = $protocol . '://' . $host . $baseUrl . $path;
+        }
+
+        header('Location: ' . $url);
         exit;
     }
 
