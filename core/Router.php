@@ -9,7 +9,8 @@ use App\Controllers\DashboardController;
 use App\Controllers\SolicitudController;
 use App\Controllers\NotificacionController;
 use App\Exportar\Admin\ExportController;
-   
+use App\Exportar\Jefe\ExportControllerJe;
+use App\Exportar\Rrhh\ExportControllerRrhh;
 
 final class Router
 {
@@ -27,12 +28,14 @@ final class Router
             '/api/notificaciones/contador'   => [NotificacionController::class, 'contador'],
             '/api/notificaciones'            => [NotificacionController::class, 'listar'],
             '/exportar/todas/excel'          => [ExportController::class, 'todasExcel'],
+            '/exportar/jefe/excel'           => [ExportControllerJe::class, 'todasExcelJefe'],
+            '/exportar/rrhh/excel'           => [ExportControllerRrhh::class, 'todasExcelRrhh'],
         ],
         'POST' => [
-            '/login'                         => [AuthController::class, 'loginPost'],
-            '/logout'                        => [AuthController::class, 'logout'],
-            '/solicitud/crear'               => [SolicitudController::class, 'crearPost'],
-            '/api/notificaciones/leer-todas' => [NotificacionController::class, 'marcarTodasLeidas'],
+            '/login'                            => [AuthController::class, 'loginPost'],
+            '/logout'                           => [AuthController::class, 'logout'],
+            '/solicitud/crear'                  => [SolicitudController::class, 'crearPost'],
+            '/api/notificaciones/leer-todas'    => [NotificacionController::class, 'marcarTodasLeidas'],
         ],
     ];
 
@@ -43,10 +46,10 @@ final class Router
             '#^/archivo/(\d+)$#'          => [SolicitudController::class, 'servirArchivo'],
         ],
         'POST' => [
-            '#^/solicitud/(\d+)/editar$#'      => [SolicitudController::class, 'editarPost'],
-            '#^/solicitud/(\d+)/eliminar$#'    => [SolicitudController::class, 'eliminar'],
-            '#^/solicitud/(\d+)/jefe$#'        => [SolicitudController::class, 'gestionJefePost'],
-            '#^/solicitud/(\d+)/rrhh$#'        => [SolicitudController::class, 'gestionRrhhPost'],
+            '#^/solicitud/(\d+)/editar$#'         => [SolicitudController::class, 'editarPost'],
+            '#^/solicitud/(\d+)/eliminar$#'       => [SolicitudController::class, 'eliminar'],
+            '#^/solicitud/(\d+)/jefe$#'           => [SolicitudController::class, 'gestionJefePost'],
+            '#^/solicitud/(\d+)/rrhh$#'           => [SolicitudController::class, 'gestionRrhhPost'],
             '#^/api/notificaciones/(\d+)/leer$#' => [NotificacionController::class, 'marcarLeida'],
         ],
     ];
