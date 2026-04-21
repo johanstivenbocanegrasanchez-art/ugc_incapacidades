@@ -7,6 +7,7 @@ namespace App\Services;
 use Core\Config;
 use App\Models\NotificacionModel;
 use App\Models\EmpleadoModel;
+use Core\AppLogger;
 
 final class NotificacionService
 {
