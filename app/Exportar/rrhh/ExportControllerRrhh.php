@@ -1,14 +1,14 @@
 <?php
 declare(strict_types=1);
 
-namespace App\Exportar\Admin;
+namespace App\Exportar\Rrhh;
 
 use Core\Controller;
 use App\Models\SolicitudModel;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
-final class ExportController extends Controller
+final class ExportControllerRrhh extends Controller
 {
     private array $cabeceras = [
         'ID',
@@ -38,69 +38,49 @@ final class ExportController extends Controller
         'FECHA_CREACION'
     ];
 
-    public function todasExcel(): void
+    public function todasExcelRrhh(): void
     {
-        $this->requireRole([ROL_ADMIN, ROL_RRHH]);
+        $this->requireRole([ROL_RRHH]);
 
-        $rows = (new SolicitudModel())->getAll();
-        $this->generarExcelPorEstado($rows, 'reporte_solicitudes');
-    }
+        $model = new SolicitudModel();
 
-    private function generarExcelPorEstado(array $rows, string $nombre): void
-    {
-        $spreadsheet = new Spreadsheet();
-        $data = $this->agruparPorEstado($rows);
+        $todas = $model->getAll();
+        $enRevisionJefe = array_values(array_filter(
+            $todas,
+            fn($s) => ($s['ESTADO'] ?? '') === 'PENDIENTE_JEFE'
+        ));
 
-        $map = [
-            'PENDIENTE_JEFE' => 'Pendiente Jefe',
-            'APROBADO_JEFE'  => 'Aprobado Jefe',
-            'RECHAZADO_JEFE' => 'Rechazado Jefe',
-            'APROBADO_RRHH'  => 'Aprobado RRHH',
-            'RECHAZADO_RRHH' => 'Rechazado RRHH',
-            'TODAS'          => 'Todas'
+        $data = [
+            'Pendientes RRHH'   => $model->getPendientesRRHH(),
+            'Histórico completo' => $todas,
+            'En revisión jefe'  => $enRevisionJefe,
         ];
 
+        $this->generarExcelPorHojas($data, 'reporte_rrhh');
+    }
+
+    private function generarExcelPorHojas(array $data, string $nombreArchivo): void
+    {
+        $spreadsheet = new Spreadsheet();
         $index = 0;
 
-        foreach ($data as $titulo => $filas) {
+        foreach ($data as $tituloHoja => $rows) {
             $sheet = $index === 0
                 ? $spreadsheet->getActiveSheet()
                 : $spreadsheet->createSheet();
 
-            $sheet->setTitle($this->limpiarTituloHoja($map[$titulo] ?? $titulo));
-            $this->llenarHoja($sheet, $filas);
+            $sheet->setTitle($this->limpiarTituloHoja($tituloHoja));
+            $this->llenarHoja($sheet, $rows);
 
             $index++;
         }
 
         header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-        header('Content-Disposition: attachment; filename="' . $nombre . '_' . date('Ymd') . '.xlsx"');
+        header('Content-Disposition: attachment; filename="' . $nombreArchivo . '_' . date('Ymd') . '.xlsx"');
         header('Cache-Control: max-age=0');
 
         (new Xlsx($spreadsheet))->save('php://output');
         exit;
-    }
-
-    private function agruparPorEstado(array $rows): array
-    {
-        $data = [
-            'PENDIENTE_JEFE' => [],
-            'APROBADO_JEFE'  => [],
-            'RECHAZADO_JEFE' => [],
-            'APROBADO_RRHH'  => [],
-            'RECHAZADO_RRHH' => [],
-            'TODAS'          => $rows
-        ];
-
-        foreach ($rows as $row) {
-            $estado = strtoupper(trim((string)($row['ESTADO'] ?? '')));
-
-            if (isset($data[$estado])) {
-                $data[$estado][] = $row;
-            }
-        }
-
-        return $data;
     }
 
     private function llenarHoja($sheet, array $rows): void
