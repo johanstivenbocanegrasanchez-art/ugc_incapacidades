@@ -27,9 +27,28 @@ $cssUrl     = $baseUrl . '/public/css/ugc.css';
   <button class="menu-toggle" aria-label="Menú" onclick="document.querySelector('.ugc-header nav').classList.toggle('nav-open')">
     <span></span><span></span><span></span>
   </button>
-  <a href="<?= $baseUrl ?>/dashboard" class="logo-link" title="Ir al Inicio">
-    <img src="<?= $baseUrl ?>/public/images/Logo%20ULGC.png" alt="Universidad La Gran Colombia" class="header-logo" height="50">
-  </a>
+
+  <div style="display:flex;align-items:center;gap:14px;flex:1;">
+    <a href="<?= $baseUrl ?>/dashboard" class="logo-link" title="Ir al Inicio">
+      <img src="<?= $baseUrl ?>/public/images/Logo%20ULGC.png" alt="Universidad La Gran Colombia" class="header-logo" height="50">
+    </a>
+
+    <div class="header-search">
+      <form action="<?= $baseUrl ?>/dashboard" method="get">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="7"></circle>
+          <path d="m20 20-3.5-3.5"></path>
+        </svg>
+        <input
+          type="text"
+          name="q"
+          placeholder="Buscar solicitud, empleado o tipo..."
+          value="<?= htmlspecialchars($q ?? $_GET['q'] ?? '') ?>"
+        >
+      </form>
+    </div>
+  </div>
+
   <nav>
   </nav>
 
