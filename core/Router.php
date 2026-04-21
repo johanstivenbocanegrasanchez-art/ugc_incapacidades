@@ -40,6 +40,7 @@ final class Router
         'GET' => [
             '#^/solicitud/(\d+)/ver$#'    => [SolicitudController::class, 'ver'],
             '#^/solicitud/(\d+)/editar$#' => [SolicitudController::class, 'editarForm'],
+            '#^/archivo/(\d+)$#'          => [SolicitudController::class, 'servirArchivo'],
         ],
         'POST' => [
             '#^/solicitud/(\d+)/editar$#'      => [SolicitudController::class, 'editarPost'],

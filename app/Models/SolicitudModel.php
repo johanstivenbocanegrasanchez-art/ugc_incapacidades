@@ -10,13 +10,14 @@ final class SolicitudModel extends Model
 {
     public function crear(array $data): bool
     {
+        $fechaHora = date('Y-m-d H:i:s');
         return $this->db->execute(
             "INSERT INTO ICEBERG.SOLICITUDES_PERMISOS
                 (NIT_EMPLEADO, NIT_JEFE, TIPO_SOLICITUD, FECHA_SOLICITUD, FECHA_INICIO, FECHA_FIN,
                  DURACION_HORAS, DURACION_DIAS, OBSERVACIONES, RUTA_COMPROBANTE, ESTADO, ACTIVO, FECHA_CREACION, FECHA_MODIFICACION)
              VALUES
-                (:nit_emp, :nit_jefe, :tipo, SYSDATE, TO_DATE(:f_ini,'YYYY-MM-DD'), TO_DATE(:f_fin,'YYYY-MM-DD'),
-                 :horas, :dias, :obs, :ruta_comprobante, 'PENDIENTE_JEFE', 1, SYSDATE, SYSDATE)",
+                (:nit_emp, :nit_jefe, :tipo, TO_DATE(:fecha_hora,'YYYY-MM-DD HH24:MI:SS'), TO_DATE(:f_ini,'YYYY-MM-DD'), TO_DATE(:f_fin,'YYYY-MM-DD'),
+                 :horas, :dias, :obs, :ruta_comprobante, 'PENDIENTE_JEFE', 1, TO_DATE(:fecha_hora,'YYYY-MM-DD HH24:MI:SS'), TO_DATE(:fecha_hora,'YYYY-MM-DD HH24:MI:SS'))",
             [
                 ':nit_emp'          => $data['nit_empleado'],
                 ':nit_jefe'         => $data['nit_jefe'],
@@ -27,6 +28,7 @@ final class SolicitudModel extends Model
                 ':dias'             => $data['duracion_dias'] ?: null,
                 ':obs'              => $data['observaciones'] ?: null,
                 ':ruta_comprobante' => $data['ruta_archivo'] ?: null,
+                ':fecha_hora'       => $fechaHora,
             ]
         );
     }
@@ -54,11 +56,13 @@ final class SolicitudModel extends Model
             $binds[':ruta_comprobante'] = $data['ruta_archivo'];
         }
 
+        $fechaHora = date('Y-m-d H:i:s');
+        $binds[':fecha_hora'] = $fechaHora;
         return $this->db->execute(
             "UPDATE ICEBERG.SOLICITUDES_PERMISOS
              SET TIPO_SOLICITUD=:tipo, FECHA_INICIO=TO_DATE(:f_ini,'YYYY-MM-DD'),
                  FECHA_FIN=TO_DATE(:f_fin,'YYYY-MM-DD'), DURACION_HORAS=:horas,
-                 DURACION_DIAS=:dias, OBSERVACIONES=:obs, FECHA_MODIFICACION=SYSDATE{$jefeUpdate}{$pdfUpdate}
+                 DURACION_DIAS=:dias, OBSERVACIONES=:obs, FECHA_MODIFICACION=TO_DATE(:fecha_hora,'YYYY-MM-DD HH24:MI:SS'){$jefeUpdate}{$pdfUpdate}
              WHERE ID=:id AND NIT_EMPLEADO=:nit AND ESTADO='PENDIENTE_JEFE' AND ACTIVO=1",
             $binds
         );
@@ -198,21 +202,23 @@ final class SolicitudModel extends Model
 
     private function gestionarJefe(int $id, string $nit, string $obs, string $nuevoEstado): bool
     {
+        $fechaHora = date('Y-m-d H:i:s');
         return $this->db->execute(
             "UPDATE ICEBERG.SOLICITUDES_PERMISOS
-             SET ESTADO=:estado, FECHA_GESTION_JEFE=SYSDATE, OBSERVACION_JEFE=:obs
+             SET ESTADO=:estado, FECHA_GESTION_JEFE=TO_DATE(:fecha_hora,'YYYY-MM-DD HH24:MI:SS'), OBSERVACION_JEFE=:obs
              WHERE ID=:id AND NIT_JEFE=:nit AND ESTADO='PENDIENTE_JEFE' AND ACTIVO=1",
-            [':estado' => $nuevoEstado, ':obs' => $obs, ':id' => $id, ':nit' => $nit]
+            [':estado' => $nuevoEstado, ':obs' => $obs, ':id' => $id, ':nit' => $nit, ':fecha_hora' => $fechaHora]
         );
     }
 
     private function gestionarRRHH(int $id, string $nit, string $obs, string $nuevoEstado): bool
     {
+        $fechaHora = date('Y-m-d H:i:s');
         return $this->db->execute(
             "UPDATE ICEBERG.SOLICITUDES_PERMISOS
-             SET ESTADO=:estado, NIT_RRHH=:nr, FECHA_GESTION_RRHH=SYSDATE, OBSERVACION_RRHH=:obs
+             SET ESTADO=:estado, NIT_RRHH=:nr, FECHA_GESTION_RRHH=TO_DATE(:fecha_hora,'YYYY-MM-DD HH24:MI:SS'), OBSERVACION_RRHH=:obs
              WHERE ID=:id AND ESTADO='APROBADO_JEFE' AND ACTIVO=1",
-            [':estado' => $nuevoEstado, ':obs' => $obs, ':id' => $id, ':nr' => $nit]
+            [':estado' => $nuevoEstado, ':obs' => $obs, ':id' => $id, ':nr' => $nit, ':fecha_hora' => $fechaHora]
         );
     }
 }

@@ -320,9 +320,32 @@ document.addEventListener('DOMContentLoaded',()=>{
 
   function formatearFecha(fecha) {
     if (!fecha) return '';
-    const date = new Date(fecha);
+
+    // Convertir el formato Oracle/PHP a ISO 8601 si es necesario
+    // Soporta: "2024-01-15 14:30:00" o "15/01/2024 14:30:00"
+    let fechaStr = fecha;
+    if (typeof fecha === 'string') {
+      // Si es formato "YYYY-MM-DD HH:MM:SS", convertir a ISO con zona horaria Colombia
+      if (/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/.test(fecha)) {
+        fechaStr = fecha.replace(' ', 'T') + '-05:00'; // UTC-5 Colombia
+      }
+      // Si es formato "DD/MM/YYYY HH:MM:SS", convertir
+      else if (/^\d{2}\/\d{2}\/\d{4} \d{2}:\d{2}:\d{2}$/.test(fecha)) {
+        const parts = fecha.match(/(\d{2})\/(\d{2})\/(\d{4}) (\d{2}):(\d{2}):(\d{2})/);
+        if (parts) {
+          fechaStr = `${parts[3]}-${parts[2]}-${parts[1]}T${parts[4]}:${parts[5]}:${parts[6]}-05:00`;
+        }
+      }
+    }
+
+    const date = new Date(fechaStr);
     const now = new Date();
-    const diffMs = now - date;
+
+    // Ajustar la hora actual a Colombia (UTC-5) para comparación correcta
+    const colombiaOffset = 5 * 60 * 60 * 1000; // 5 horas en ms
+    const nowColombia = new Date(now.getTime() + (now.getTimezoneOffset() * 60000) - colombiaOffset);
+
+    const diffMs = nowColombia - date;
     const diffMins = Math.floor(diffMs / 60000);
     const diffHours = Math.floor(diffMs / 3600000);
     const diffDays = Math.floor(diffMs / 86400000);
@@ -333,7 +356,7 @@ document.addEventListener('DOMContentLoaded',()=>{
     if (diffDays === 1) return 'Ayer';
     if (diffDays < 7) return `Hace ${diffDays} días`;
 
-    return date.toLocaleDateString('es-CO', { day: 'numeric', month: 'short' });
+    return date.toLocaleDateString('es-CO', { day: 'numeric', month: 'short', timeZone: 'America/Bogota' });
   }
 
   function escapeHtml(text) {
