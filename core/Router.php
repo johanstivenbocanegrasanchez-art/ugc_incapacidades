@@ -20,10 +20,13 @@ final class Router
             '/dashboard'                     => [DashboardController::class, 'index'],
             '/solicitud/crear'               => [SolicitudController::class, 'crearForm'],
             '/solicitudes'                   => [DashboardController::class, 'listar'],
+            '/jefe/solicitudes'              => [DashboardController::class, 'solicitudesJefe'],
+            '/rrhh/solicitudes'              => [DashboardController::class, 'solicitudesRrhh'],
+            '/admin/solicitudes'             => [DashboardController::class, 'solicitudesAdmin'],
+            '/empleado/solicitudes'          => [DashboardController::class, 'solicitudesEmpleado'],
             '/api/notificaciones/contador'   => [NotificacionController::class, 'contador'],
             '/api/notificaciones'            => [NotificacionController::class, 'listar'],
-            '/exportar/todas/excel'           => [ExportController::class, 'todasExcel'],
-
+            '/exportar/todas/excel'          => [ExportController::class, 'todasExcel'],
         ],
         'POST' => [
             '/login'                         => [AuthController::class, 'loginPost'],
@@ -37,13 +40,12 @@ final class Router
         'GET' => [
             '#^/solicitud/(\d+)/ver$#'    => [SolicitudController::class, 'ver'],
             '#^/solicitud/(\d+)/editar$#' => [SolicitudController::class, 'editarForm'],
-            '#^/archivo/(\d+)$#'          => [SolicitudController::class, 'servirArchivo'],
         ],
         'POST' => [
             '#^/solicitud/(\d+)/editar$#'      => [SolicitudController::class, 'editarPost'],
-            '#^/solicitud/(\d+)/eliminar$#'   => [SolicitudController::class, 'eliminar'],
-            '#^/solicitud/(\d+)/jefe$#'       => [SolicitudController::class, 'gestionJefePost'],
-            '#^/solicitud/(\d+)/rrhh$#'       => [SolicitudController::class, 'gestionRrhhPost'],
+            '#^/solicitud/(\d+)/eliminar$#'    => [SolicitudController::class, 'eliminar'],
+            '#^/solicitud/(\d+)/jefe$#'        => [SolicitudController::class, 'gestionJefePost'],
+            '#^/solicitud/(\d+)/rrhh$#'        => [SolicitudController::class, 'gestionRrhhPost'],
             '#^/api/notificaciones/(\d+)/leer$#' => [NotificacionController::class, 'marcarLeida'],
         ],
     ];
