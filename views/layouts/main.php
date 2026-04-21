@@ -26,11 +26,9 @@ $cssUrl     = $baseUrl . '/public/css/ugc.css';
   <button class="menu-toggle" aria-label="Menú" onclick="document.querySelector('.ugc-header nav').classList.toggle('nav-open')">
     <span></span><span></span><span></span>
   </button>
-  <svg width="42" height="42" viewBox="0 0 80 80" fill="none" aria-label="UGC">
-    <rect width="80" height="80" rx="10" fill="rgba(255,255,255,.15)"/>
-    <text x="50%" y="55%" dominant-baseline="middle" text-anchor="middle" fill="white" font-size="23" font-weight="800" font-family="Inter,Arial">UGC</text>
-  </svg>
-  <div class="brand">UNIVERSIDAD<small>La Gran Colombia</small></div>
+  <a href="<?= $baseUrl ?>/dashboard" class="logo-link" title="Ir al Inicio">
+    <img src="<?= $baseUrl ?>/public/images/Logo%20ULGC.png" alt="Universidad La Gran Colombia" class="header-logo" height="50">
+  </a>
   <nav>
     <a href="<?= $baseUrl ?>/dashboard">Inicio</a>
     <?php if (in_array($user['rol'] ?? '', [ROL_ADMIN, ROL_RRHH, ROL_JEFE], true)): ?>
@@ -78,7 +76,8 @@ $cssUrl     = $baseUrl . '/public/css/ugc.css';
 
 <?php if (Config::isDev() && !Oracle::getInstance()->estaDisponible()): ?>
 <div class="dev-banner">
-  ⚠️ <strong>Modo sin BD:</strong> Oracle no disponible — la extensión OCI8 no está instalada o no hay conexión. Las operaciones usarán datos vacíos.
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+  <strong>Modo sin BD:</strong> Oracle no disponible — la extensión OCI8 no está instalada o no hay conexión. Las operaciones usarán datos vacíos.
 </div>
 <?php endif; ?>
 
@@ -91,6 +90,18 @@ $cssUrl     = $baseUrl . '/public/css/ugc.css';
   <?= $content ?>
 </main>
 
+<?php
+// Determinar rol y rutas correctas según el usuario
+$userRol = $user['rol'] ?? '';
+$solicitudesUrl = match($userRol) {
+    ROL_ADMIN => $baseUrl . '/admin/solicitudes',
+    ROL_RRHH => $baseUrl . '/rrhh/solicitudes',
+    ROL_JEFE => $baseUrl . '/jefe/solicitudes',
+    ROL_EMPLEADO => $baseUrl . '/empleado/solicitudes',
+    default => $baseUrl . '/dashboard'
+};
+$esAdminORrhh = in_array($userRol, [ROL_ADMIN, ROL_RRHH], true);
+?>
 <footer class="ugc-footer">
   <div class="footer-content">
     <div class="footer-brand">
@@ -99,8 +110,11 @@ $cssUrl     = $baseUrl . '/public/css/ugc.css';
     </div>
     <div class="footer-links">
       <a href="<?= $baseUrl ?>/dashboard">Inicio</a>
-      <a href="<?= $baseUrl ?>/dashboard">Mis Solicitudes</a>
-      <a href="<?= $baseUrl ?>/logout">Cerrar Sesion</a>
+      <a href="<?= $solicitudesUrl ?>"><?= $esAdminORrhh ? 'Todas las Solicitudes' : 'Mis Solicitudes' ?></a>
+      <form action="<?= $baseUrl ?>/logout" method="post" class="footer-logout-form">
+        <?= Security::csrfField() ?>
+        <button type="submit" class="footer-logout-btn">Cerrar Sesión</button>
+      </form>
     </div>
     <div class="footer-copy">
       &copy; <?= date('Y') ?> Sistema de Solicitudes. Todos los derechos reservados.
@@ -124,7 +138,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   });
 
   // ============================================
-  // SISTEMA DE NOTIFICACIONES
+  // SISTEMA DE NOTIFICACIONES CON CACHE LOCAL
   // ============================================
   const notifBell = document.getElementById('notifBell');
   const notifDropdown = document.getElementById('notifDropdown');
@@ -135,6 +149,66 @@ document.addEventListener('DOMContentLoaded',()=>{
 
   let notificaciones = [];
   let dropdownOpen = false;
+
+  // CACHE LOCAL - Claves de almacenamiento
+  const CACHE_KEYS = {
+    CONTADOR: 'ugc_notif_contador',
+    NOTIFICACIONES: 'ugc_notif_lista',
+    TIMESTAMP: 'ugc_notif_timestamp',
+    USER_NIT: 'ugc_notif_user_nit'
+  };
+  const CACHE_DURACION_MS = 5 * 60 * 1000; // 5 minutos
+
+  // Obtener NIT del usuario actual para aislar caché por usuario
+  const userNit = '<?= $user['cedula'] ?? '' ?>';
+
+  // Verificar si el caché pertenece al usuario actual
+  function esCacheValido() {
+    const cacheUserNit = localStorage.getItem(CACHE_KEYS.USER_NIT);
+    return cacheUserNit === userNit;
+  }
+
+  // Guardar en caché
+  function guardarCache(contador, notifs) {
+    try {
+      localStorage.setItem(CACHE_KEYS.USER_NIT, userNit);
+      localStorage.setItem(CACHE_KEYS.CONTADOR, String(contador));
+      localStorage.setItem(CACHE_KEYS.NOTIFICACIONES, JSON.stringify(notifs || []));
+      localStorage.setItem(CACHE_KEYS.TIMESTAMP, String(Date.now()));
+    } catch (e) {
+      // Silenciar errores de localStorage (modo privado, etc.)
+    }
+  }
+
+  // Cargar desde caché
+  function cargarCache() {
+    if (!esCacheValido()) return null;
+    try {
+      const timestamp = parseInt(localStorage.getItem(CACHE_KEYS.TIMESTAMP) || '0');
+      const ahora = Date.now();
+      if (ahora - timestamp > CACHE_DURACION_MS) return null; // Cache expirado
+
+      return {
+        contador: parseInt(localStorage.getItem(CACHE_KEYS.CONTADOR) || '0'),
+        notificaciones: JSON.parse(localStorage.getItem(CACHE_KEYS.NOTIFICACIONES) || '[]'),
+        timestamp: timestamp
+      };
+    } catch (e) {
+      return null;
+    }
+  }
+
+  // Mostrar contador en el badge
+  function mostrarContador(count, animar = false) {
+    if (!notifBadge) return;
+    notifBadge.textContent = count > 99 ? '99+' : count;
+    notifBadge.setAttribute('data-count', count);
+
+    if (count > 0 && animar) {
+      notifBell.classList.add('has-new');
+      setTimeout(() => notifBell.classList.remove('has-new'), 1000);
+    }
+  }
 
   // Toggle dropdown
   if (notifBell) {
@@ -156,10 +230,15 @@ document.addEventListener('DOMContentLoaded',()=>{
     }
   });
 
-  // Cargar contador inicial
-  actualizarContador();
+  // Cargar contador: primero desde caché (instantáneo), luego actualizar
+  const cacheInicial = cargarCache();
+  if (cacheInicial) {
+    mostrarContador(cacheInicial.contador, false);
+  }
+  // Actualizar desde servidor en segundo plano
+  actualizarContador(true);
   // Refrescar cada 60 segundos
-  setInterval(actualizarContador, 60000);
+  setInterval(() => actualizarContador(false), 60000);
 
   // Marcar todas como leídas
   if (markAllBtn) {
@@ -174,6 +253,12 @@ document.addEventListener('DOMContentLoaded',()=>{
       markAllBtn.disabled = true;
       markAllBtn.textContent = 'Procesando...';
 
+      // Actualizar caché local inmediatamente (UX más rápida)
+      guardarCache(0, []);
+      mostrarContador(0, false);
+      notificaciones = [];
+      renderizarNotificaciones();
+
       try {
         const response = await fetch(`${baseUrl}/api/notificaciones/leer-todas`, {
           method: 'POST',
@@ -185,7 +270,8 @@ document.addEventListener('DOMContentLoaded',()=>{
         });
         const data = await response.json();
         if (data.success) {
-          actualizarContador();
+          // Confirmar estado desde servidor
+          actualizarContador(false);
           cargarNotificaciones();
           mostrarToast('Todas las notificaciones marcadas como leídas', 'success');
         } else {
@@ -202,21 +288,17 @@ document.addEventListener('DOMContentLoaded',()=>{
   }
 
   // Función para actualizar el contador
-  async function actualizarContador() {
+  async function actualizarContador(animar = false) {
     try {
       const response = await fetch(`${baseUrl}/api/notificaciones/contador`);
       const data = await response.json();
       const count = data.contador || 0;
 
-      if (notifBadge) {
-        notifBadge.textContent = count > 99 ? '99+' : count;
-        notifBadge.setAttribute('data-count', count);
+      mostrarContador(count, animar);
 
-        if (count > 0) {
-          notifBell.classList.add('has-new');
-          setTimeout(() => notifBell.classList.remove('has-new'), 1000);
-        }
-      }
+      // Guardar en caché
+      const cacheActual = cargarCache();
+      guardarCache(count, cacheActual?.notificaciones || []);
     } catch (err) {
       console.error('Error al cargar contador:', err);
     }
@@ -224,13 +306,36 @@ document.addEventListener('DOMContentLoaded',()=>{
 
   // Función para cargar notificaciones
   async function cargarNotificaciones() {
+    // Primero, mostrar desde caché si existe (carga instantánea)
+    const cache = cargarCache();
+    if (cache && cache.notificaciones && cache.notificaciones.length > 0) {
+      notificaciones = cache.notificaciones;
+      renderizarNotificaciones();
+    }
+
+    // Luego, actualizar desde servidor en segundo plano
     try {
       const response = await fetch(`${baseUrl}/api/notificaciones`);
       const data = await response.json();
-      notificaciones = data.notificaciones || [];
-      renderizarNotificaciones();
+      const nuevasNotifs = data.notificaciones || [];
+
+      // Solo re-renderizar si hay cambios
+      const hayCambios = JSON.stringify(notificaciones) !== JSON.stringify(nuevasNotifs);
+      if (hayCambios || !cache) {
+        notificaciones = nuevasNotifs;
+        renderizarNotificaciones();
+      }
+
+      // Actualizar caché
+      const contadorActual = parseInt(notifBadge?.getAttribute('data-count') || '0');
+      guardarCache(contadorActual, nuevasNotifs);
     } catch (err) {
       console.error('Error al cargar notificaciones:', err);
+      // Si no hay caché y falló la petición, mostrar estado vacío
+      if (!cache) {
+        notificaciones = [];
+        renderizarNotificaciones();
+      }
     }
   }
 
@@ -279,6 +384,15 @@ document.addEventListener('DOMContentLoaded',()=>{
       return;
     }
 
+    // Actualizar caché local inmediatamente (UX más rápida)
+    const cache = cargarCache();
+    if (cache && cache.notificaciones) {
+      const notifsActualizadas = cache.notificaciones.filter(n => n.ID != id);
+      const nuevoContador = Math.max(0, cache.contador - 1);
+      guardarCache(nuevoContador, notifsActualizadas);
+      mostrarContador(nuevoContador, false);
+    }
+
     try {
       const response = await fetch(`${baseUrl}/api/notificaciones/${id}/leer`, {
         method: 'POST',
@@ -290,7 +404,12 @@ document.addEventListener('DOMContentLoaded',()=>{
       });
       const data = await response.json();
       if (data.success) {
-        actualizarContador();
+        // Actualizar desde servidor para sincronizar
+        actualizarContador(false);
+        // Recargar lista si el dropdown está abierto
+        if (dropdownOpen) {
+          cargarNotificaciones();
+        }
       }
     } catch (err) {
       console.error('Error al marcar como leída:', err);
@@ -299,16 +418,25 @@ document.addEventListener('DOMContentLoaded',()=>{
 
   // Helpers
   function getIconoNotificacion(tipo) {
-    const iconos = {
-      'NUEVA_SOLICITUD': '🔔',
-      'SOLICITUD_EDITADA': '✏️',
-      'SOLICITUD_APROBADA_JEFE': '✅',
-      'SOLICITUD_RECHAZADA_JEFE': '❌',
-      'REVISION_RRHH': '👁️',
-      'SOLICITUD_APROBADA_RRHH': '🎉',
-      'SOLICITUD_RECHAZADA_RRHH': '🚫'
+    const svgs = {
+      'campana': '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>',
+      'editar': '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>',
+      'check': '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>',
+      'cruz': '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>',
+      'ojo': '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>',
+      'prohibido': '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line></svg>',
+      'documento': '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>'
     };
-    return iconos[tipo] || '📋';
+    const iconos = {
+      'NUEVA_SOLICITUD': svgs.campana,
+      'SOLICITUD_EDITADA': svgs.editar,
+      'SOLICITUD_APROBADA_JEFE': svgs.check,
+      'SOLICITUD_RECHAZADA_JEFE': svgs.cruz,
+      'REVISION_RRHH': svgs.ojo,
+      'SOLICITUD_APROBADA_RRHH': svgs.check,
+      'SOLICITUD_RECHAZADA_RRHH': svgs.prohibido
+    };
+    return iconos[tipo] || svgs.documento;
   }
 
   function getClaseIcono(tipo) {
