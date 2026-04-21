@@ -947,3 +947,20 @@ body{background:var(--bg);color:var(--text);font-size:15px;min-height:100vh;font
     max-width: none;
   }
 }
+.stat-card-link{
+  text-decoration: none;
+  color: inherit;
+  display: block;
+  cursor: pointer;
+  transition: transform .2s ease, box-shadow .2s ease;
+}
+
+.stat-card-link:hover{
+  transform: translateY(-3px);
+}
+
+.stat-card-link .stat-icon,
+.stat-card-link .num,
+.stat-card-link .lbl{
+  color: inherit;
+}
