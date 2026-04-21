@@ -60,13 +60,13 @@ $baseUrl    = Config::baseUrl();
       <div class="file-upload-container">
         <input type="file" name="documento_pdf" id="documento_pdf" accept=".pdf,application/pdf" required />
         <div class="file-upload-hint">
-          <span class="hint-icon">📄</span>
+          <span class="hint-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg></span>
           <span>Formato permitido: PDF. Tamaño máximo: 5MB</span>
         </div>
       </div>
       <div id="pdf-preview-container" class="pdf-preview-container" style="display:none;">
         <div class="pdf-preview-header">
-          <span class="pdf-icon">📑</span>
+          <span class="pdf-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><polyline points="9 15 12 12 15 15"></polyline></svg></span>
           <span id="pdf-filename" class="pdf-filename"></span>
           <span id="pdf-size" class="pdf-size"></span>
           <button type="button" id="remove-pdf" class="remove-pdf-btn" title="Eliminar archivo">&times;</button>

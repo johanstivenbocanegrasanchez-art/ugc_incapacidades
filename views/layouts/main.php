@@ -26,11 +26,9 @@ $cssUrl     = $baseUrl . '/public/css/ugc.css';
   <button class="menu-toggle" aria-label="Menú" onclick="document.querySelector('.ugc-header nav').classList.toggle('nav-open')">
     <span></span><span></span><span></span>
   </button>
-  <svg width="42" height="42" viewBox="0 0 80 80" fill="none" aria-label="UGC">
-    <rect width="80" height="80" rx="10" fill="rgba(255,255,255,.15)"/>
-    <text x="50%" y="55%" dominant-baseline="middle" text-anchor="middle" fill="white" font-size="23" font-weight="800" font-family="Inter,Arial">UGC</text>
-  </svg>
-  <div class="brand">UNIVERSIDAD<small>La Gran Colombia</small></div>
+  <a href="<?= $baseUrl ?>/dashboard" class="logo-link" title="Ir al Inicio">
+    <img src="<?= $baseUrl ?>/public/images/Logo%20ULGC.png" alt="Universidad La Gran Colombia" class="header-logo" height="50">
+  </a>
   <nav>
     <a href="<?= $baseUrl ?>/dashboard">Inicio</a>
     <?php if (in_array($user['rol'] ?? '', [ROL_ADMIN, ROL_RRHH, ROL_JEFE], true)): ?>
@@ -78,7 +76,8 @@ $cssUrl     = $baseUrl . '/public/css/ugc.css';
 
 <?php if (Config::isDev() && !Oracle::getInstance()->estaDisponible()): ?>
 <div class="dev-banner">
-  ⚠️ <strong>Modo sin BD:</strong> Oracle no disponible — la extensión OCI8 no está instalada o no hay conexión. Las operaciones usarán datos vacíos.
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+  <strong>Modo sin BD:</strong> Oracle no disponible — la extensión OCI8 no está instalada o no hay conexión. Las operaciones usarán datos vacíos.
 </div>
 <?php endif; ?>
 
@@ -91,6 +90,18 @@ $cssUrl     = $baseUrl . '/public/css/ugc.css';
   <?= $content ?>
 </main>
 
+<?php
+// Determinar rol y rutas correctas según el usuario
+$userRol = $user['rol'] ?? '';
+$solicitudesUrl = match($userRol) {
+    ROL_ADMIN => $baseUrl . '/admin/solicitudes',
+    ROL_RRHH => $baseUrl . '/rrhh/solicitudes',
+    ROL_JEFE => $baseUrl . '/jefe/solicitudes',
+    ROL_EMPLEADO => $baseUrl . '/empleado/solicitudes',
+    default => $baseUrl . '/dashboard'
+};
+$esAdminORrhh = in_array($userRol, [ROL_ADMIN, ROL_RRHH], true);
+?>
 <footer class="ugc-footer">
   <div class="footer-content">
     <div class="footer-brand">
@@ -99,8 +110,11 @@ $cssUrl     = $baseUrl . '/public/css/ugc.css';
     </div>
     <div class="footer-links">
       <a href="<?= $baseUrl ?>/dashboard">Inicio</a>
-      <a href="<?= $baseUrl ?>/dashboard">Mis Solicitudes</a>
-      <a href="<?= $baseUrl ?>/logout">Cerrar Sesion</a>
+      <a href="<?= $solicitudesUrl ?>"><?= $esAdminORrhh ? 'Todas las Solicitudes' : 'Mis Solicitudes' ?></a>
+      <form action="<?= $baseUrl ?>/logout" method="post" class="footer-logout-form">
+        <?= Security::csrfField() ?>
+        <button type="submit" class="footer-logout-btn">Cerrar Sesión</button>
+      </form>
     </div>
     <div class="footer-copy">
       &copy; <?= date('Y') ?> Sistema de Solicitudes. Todos los derechos reservados.
@@ -299,16 +313,25 @@ document.addEventListener('DOMContentLoaded',()=>{
 
   // Helpers
   function getIconoNotificacion(tipo) {
-    const iconos = {
-      'NUEVA_SOLICITUD': '🔔',
-      'SOLICITUD_EDITADA': '✏️',
-      'SOLICITUD_APROBADA_JEFE': '✅',
-      'SOLICITUD_RECHAZADA_JEFE': '❌',
-      'REVISION_RRHH': '👁️',
-      'SOLICITUD_APROBADA_RRHH': '🎉',
-      'SOLICITUD_RECHAZADA_RRHH': '🚫'
+    const svgs = {
+      'campana': '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>',
+      'editar': '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>',
+      'check': '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>',
+      'cruz': '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>',
+      'ojo': '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>',
+      'prohibido': '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line></svg>',
+      'documento': '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>'
     };
-    return iconos[tipo] || '📋';
+    const iconos = {
+      'NUEVA_SOLICITUD': svgs.campana,
+      'SOLICITUD_EDITADA': svgs.editar,
+      'SOLICITUD_APROBADA_JEFE': svgs.check,
+      'SOLICITUD_RECHAZADA_JEFE': svgs.cruz,
+      'REVISION_RRHH': svgs.ojo,
+      'SOLICITUD_APROBADA_RRHH': svgs.check,
+      'SOLICITUD_RECHAZADA_RRHH': svgs.prohibido
+    };
+    return iconos[tipo] || svgs.documento;
   }
 
   function getClaseIcono(tipo) {
