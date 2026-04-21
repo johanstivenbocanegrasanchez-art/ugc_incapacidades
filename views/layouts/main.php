@@ -138,7 +138,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   });
 
   // ============================================
-  // SISTEMA DE NOTIFICACIONES
+  // SISTEMA DE NOTIFICACIONES CON CACHE LOCAL
   // ============================================
   const notifBell = document.getElementById('notifBell');
   const notifDropdown = document.getElementById('notifDropdown');
@@ -149,6 +149,66 @@ document.addEventListener('DOMContentLoaded',()=>{
 
   let notificaciones = [];
   let dropdownOpen = false;
+
+  // CACHE LOCAL - Claves de almacenamiento
+  const CACHE_KEYS = {
+    CONTADOR: 'ugc_notif_contador',
+    NOTIFICACIONES: 'ugc_notif_lista',
+    TIMESTAMP: 'ugc_notif_timestamp',
+    USER_NIT: 'ugc_notif_user_nit'
+  };
+  const CACHE_DURACION_MS = 5 * 60 * 1000; // 5 minutos
+
+  // Obtener NIT del usuario actual para aislar caché por usuario
+  const userNit = '<?= $user['cedula'] ?? '' ?>';
+
+  // Verificar si el caché pertenece al usuario actual
+  function esCacheValido() {
+    const cacheUserNit = localStorage.getItem(CACHE_KEYS.USER_NIT);
+    return cacheUserNit === userNit;
+  }
+
+  // Guardar en caché
+  function guardarCache(contador, notifs) {
+    try {
+      localStorage.setItem(CACHE_KEYS.USER_NIT, userNit);
+      localStorage.setItem(CACHE_KEYS.CONTADOR, String(contador));
+      localStorage.setItem(CACHE_KEYS.NOTIFICACIONES, JSON.stringify(notifs || []));
+      localStorage.setItem(CACHE_KEYS.TIMESTAMP, String(Date.now()));
+    } catch (e) {
+      // Silenciar errores de localStorage (modo privado, etc.)
+    }
+  }
+
+  // Cargar desde caché
+  function cargarCache() {
+    if (!esCacheValido()) return null;
+    try {
+      const timestamp = parseInt(localStorage.getItem(CACHE_KEYS.TIMESTAMP) || '0');
+      const ahora = Date.now();
+      if (ahora - timestamp > CACHE_DURACION_MS) return null; // Cache expirado
+
+      return {
+        contador: parseInt(localStorage.getItem(CACHE_KEYS.CONTADOR) || '0'),
+        notificaciones: JSON.parse(localStorage.getItem(CACHE_KEYS.NOTIFICACIONES) || '[]'),
+        timestamp: timestamp
+      };
+    } catch (e) {
+      return null;
+    }
+  }
+
+  // Mostrar contador en el badge
+  function mostrarContador(count, animar = false) {
+    if (!notifBadge) return;
+    notifBadge.textContent = count > 99 ? '99+' : count;
+    notifBadge.setAttribute('data-count', count);
+
+    if (count > 0 && animar) {
+      notifBell.classList.add('has-new');
+      setTimeout(() => notifBell.classList.remove('has-new'), 1000);
+    }
+  }
 
   // Toggle dropdown
   if (notifBell) {
@@ -170,10 +230,15 @@ document.addEventListener('DOMContentLoaded',()=>{
     }
   });
 
-  // Cargar contador inicial
-  actualizarContador();
+  // Cargar contador: primero desde caché (instantáneo), luego actualizar
+  const cacheInicial = cargarCache();
+  if (cacheInicial) {
+    mostrarContador(cacheInicial.contador, false);
+  }
+  // Actualizar desde servidor en segundo plano
+  actualizarContador(true);
   // Refrescar cada 60 segundos
-  setInterval(actualizarContador, 60000);
+  setInterval(() => actualizarContador(false), 60000);
 
   // Marcar todas como leídas
   if (markAllBtn) {
@@ -188,6 +253,12 @@ document.addEventListener('DOMContentLoaded',()=>{
       markAllBtn.disabled = true;
       markAllBtn.textContent = 'Procesando...';
 
+      // Actualizar caché local inmediatamente (UX más rápida)
+      guardarCache(0, []);
+      mostrarContador(0, false);
+      notificaciones = [];
+      renderizarNotificaciones();
+
       try {
         const response = await fetch(`${baseUrl}/api/notificaciones/leer-todas`, {
           method: 'POST',
@@ -199,7 +270,8 @@ document.addEventListener('DOMContentLoaded',()=>{
         });
         const data = await response.json();
         if (data.success) {
-          actualizarContador();
+          // Confirmar estado desde servidor
+          actualizarContador(false);
           cargarNotificaciones();
           mostrarToast('Todas las notificaciones marcadas como leídas', 'success');
         } else {
@@ -216,21 +288,17 @@ document.addEventListener('DOMContentLoaded',()=>{
   }
 
   // Función para actualizar el contador
-  async function actualizarContador() {
+  async function actualizarContador(animar = false) {
     try {
       const response = await fetch(`${baseUrl}/api/notificaciones/contador`);
       const data = await response.json();
       const count = data.contador || 0;
 
-      if (notifBadge) {
-        notifBadge.textContent = count > 99 ? '99+' : count;
-        notifBadge.setAttribute('data-count', count);
+      mostrarContador(count, animar);
 
-        if (count > 0) {
-          notifBell.classList.add('has-new');
-          setTimeout(() => notifBell.classList.remove('has-new'), 1000);
-        }
-      }
+      // Guardar en caché
+      const cacheActual = cargarCache();
+      guardarCache(count, cacheActual?.notificaciones || []);
     } catch (err) {
       console.error('Error al cargar contador:', err);
     }
@@ -238,13 +306,36 @@ document.addEventListener('DOMContentLoaded',()=>{
 
   // Función para cargar notificaciones
   async function cargarNotificaciones() {
+    // Primero, mostrar desde caché si existe (carga instantánea)
+    const cache = cargarCache();
+    if (cache && cache.notificaciones && cache.notificaciones.length > 0) {
+      notificaciones = cache.notificaciones;
+      renderizarNotificaciones();
+    }
+
+    // Luego, actualizar desde servidor en segundo plano
     try {
       const response = await fetch(`${baseUrl}/api/notificaciones`);
       const data = await response.json();
-      notificaciones = data.notificaciones || [];
-      renderizarNotificaciones();
+      const nuevasNotifs = data.notificaciones || [];
+
+      // Solo re-renderizar si hay cambios
+      const hayCambios = JSON.stringify(notificaciones) !== JSON.stringify(nuevasNotifs);
+      if (hayCambios || !cache) {
+        notificaciones = nuevasNotifs;
+        renderizarNotificaciones();
+      }
+
+      // Actualizar caché
+      const contadorActual = parseInt(notifBadge?.getAttribute('data-count') || '0');
+      guardarCache(contadorActual, nuevasNotifs);
     } catch (err) {
       console.error('Error al cargar notificaciones:', err);
+      // Si no hay caché y falló la petición, mostrar estado vacío
+      if (!cache) {
+        notificaciones = [];
+        renderizarNotificaciones();
+      }
     }
   }
 
@@ -293,6 +384,15 @@ document.addEventListener('DOMContentLoaded',()=>{
       return;
     }
 
+    // Actualizar caché local inmediatamente (UX más rápida)
+    const cache = cargarCache();
+    if (cache && cache.notificaciones) {
+      const notifsActualizadas = cache.notificaciones.filter(n => n.ID != id);
+      const nuevoContador = Math.max(0, cache.contador - 1);
+      guardarCache(nuevoContador, notifsActualizadas);
+      mostrarContador(nuevoContador, false);
+    }
+
     try {
       const response = await fetch(`${baseUrl}/api/notificaciones/${id}/leer`, {
         method: 'POST',
@@ -304,7 +404,12 @@ document.addEventListener('DOMContentLoaded',()=>{
       });
       const data = await response.json();
       if (data.success) {
-        actualizarContador();
+        // Actualizar desde servidor para sincronizar
+        actualizarContador(false);
+        // Recargar lista si el dropdown está abierto
+        if (dropdownOpen) {
+          cargarNotificaciones();
+        }
       }
     } catch (err) {
       console.error('Error al marcar como leída:', err);
