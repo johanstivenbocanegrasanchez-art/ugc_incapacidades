@@ -24,7 +24,7 @@ $baseUrl = Config::baseUrl();
     <?php if (!empty($solicitud['RUTA_COMPROBANTE'])): ?>
     <div class="detail-row"><dt>Documento adjunto</dt>
       <dd>
-        <div class="archivo-adjunto" style="margin:0;max-width:400px;">
+        <div class="archivo-adjunto" style="margin:0;max-width:600px;">
           <span class="archivo-icono">📑</span>
           <div class="archivo-info">
             <div class="archivo-nombre"><?= htmlspecialchars(basename($solicitud['RUTA_COMPROBANTE'])) ?></div>
