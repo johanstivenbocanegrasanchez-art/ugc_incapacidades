@@ -3,60 +3,100 @@ use Core\Config;
 use Core\Security;
 
 $esAprendiz = $esAprendiz ?? false;
-$jefes      = $jefes      ?? [];
-$tipos      = $tipos      ?? [];
-$hoy        = $hoy        ?? date('Y-m-d');
+$jefes      = $jefes ?? [];
+$tipos      = $tipos ?? [];
+$hoy        = $hoy ?? date('Y-m-d');
 $baseUrl    = Config::baseUrl();
 ?>
 <div class="page-header animate-fade-down">
   <h1 class="page-title">Nueva Solicitud de Permiso</h1>
-  <a href="<?= $baseUrl ?>/dashboard" class="btn btn-outline btn-sm">Volver</a>
 </div>
+
 <div class="form-card animate-fade-up">
   <?php if (!$esAprendiz && !empty($user['nombre_jefe'])): ?>
-  <div class="info-jefe">
-    <div><strong>Jefe asignado:</strong> <?= htmlspecialchars($user['nombre_jefe']) ?></div>
-  </div>
+    <div class="info-jefe">
+      <div><strong>Jefe asignado:</strong> <?= htmlspecialchars($user['nombre_jefe']) ?></div>
+    </div>
   <?php endif; ?>
+
   <form method="post" action="<?= $baseUrl ?>/solicitud/crear" id="formSolicitud" enctype="multipart/form-data">
     <?= Security::csrfField() ?>
+
     <?php if ($esAprendiz): ?>
-    <div class="form-group">
-      <label>Jefe responsable * <span class="badge-info">Aprendiz – elige tu jefe</span></label>
-      <select name="nit_jefe_seleccionado" required>
-        <option value="">-- Selecciona un jefe --</option>
-        <?php foreach ($jefes as $j): ?>
-          <option value="<?= htmlspecialchars($j['NIT']) ?>"><?= htmlspecialchars($j['NOMBRE_COMPLETO']) ?> — CC <?= htmlspecialchars($j['CENTRO_COSTO']) ?></option>
-        <?php endforeach; ?>
-      </select>
-    </div>
+      <div class="form-group">
+        <label>Jefe responsable * <span class="badge-info">Aprendiz – elige tu jefe</span></label>
+        <select name="nit_jefe_seleccionado" required>
+          <option value="">-- Selecciona un jefe --</option>
+          <?php foreach ($jefes as $j): ?>
+            <option value="<?= htmlspecialchars($j['NIT']) ?>">
+              <?= htmlspecialchars($j['NOMBRE_COMPLETO']) ?> — CC <?= htmlspecialchars($j['CENTRO_COSTO']) ?>
+            </option>
+          <?php endforeach; ?>
+        </select>
+      </div>
     <?php endif; ?>
+
     <div class="form-group">
       <label>Tipo de solicitud *</label>
       <select name="tipo_solicitud" required>
         <option value="">-- Selecciona --</option>
-        <?php foreach ($tipos as $val => $lbl): ?><option value="<?= $val ?>"><?= $lbl ?></option><?php endforeach; ?>
+        <?php foreach ($tipos as $val => $lbl): ?>
+          <option value="<?= htmlspecialchars($val) ?>"><?= htmlspecialchars($lbl) ?></option>
+        <?php endforeach; ?>
       </select>
     </div>
+
     <div class="form-row">
       <div class="form-group">
         <label>Fecha inicio *</label>
-        <input type="date" name="fecha_inicio" id="fecha_inicio" min="<?= $hoy ?>" required/>
+        <input type="date" name="fecha_inicio" id="fecha_inicio" min="<?= htmlspecialchars($hoy) ?>" required />
         <span class="field-hint">No puede ser anterior a hoy</span>
       </div>
+
       <div class="form-group">
         <label>Fecha fin *</label>
-        <input type="date" name="fecha_fin" id="fecha_fin" min="<?= $hoy ?>" required/>
+        <input type="date" name="fecha_fin" id="fecha_fin" min="<?= htmlspecialchars($hoy) ?>" required />
         <span class="field-hint">No puede ser anterior a la fecha inicio</span>
       </div>
     </div>
+
     <div class="form-row">
-      <div class="form-group"><label>Duración en horas</label><input type="number" name="duracion_horas" min="0" max="999" step="0.5" placeholder="Ej. 4"/></div>
-      <div class="form-group"><label>Duración en días</label><input type="number" name="duracion_dias" min="0" max="365" step="0.5" placeholder="Ej. 2"/></div>
+      <div class="form-group">
+        <label>Duración en horas</label>
+        <input
+          type="number"
+          name="duracion_horas"
+          id="duracion_horas"
+          min="0"
+          max="9999"
+          step="0.5"
+          placeholder="Ej. 8"
+        />
+      </div>
+
+      <div class="form-group">
+        <label>Duración en días</label>
+        <input
+          type="number"
+          name="duracion_dias"
+          id="duracion_dias"
+          min="0"
+          max="365"
+          step="1"
+          placeholder="Ej. 1"
+          readonly
+        />
+      </div>
     </div>
-    <div class="form-group"><label>Observaciones</label><textarea name="observaciones" rows="4" placeholder="Describe el motivo..."></textarea></div>
+
+    <div class="form-group">
+      <label>Observaciones</label>
+      <textarea name="observaciones" rows="4" placeholder="Describe el motivo..."></textarea>
+    </div>
+
     <div class="form-group">
       <label>Documento adjunto (PDF, máx. 5MB) *</label>
+
       <div class="file-upload-container">
         <input type="file" name="documento_pdf" id="documento_pdf" accept=".pdf,application/pdf" required />
         <div class="file-upload-hint">
@@ -64,6 +104,7 @@ $baseUrl    = Config::baseUrl();
           <span>Formato permitido: PDF. Tamaño máximo: 5MB</span>
         </div>
       </div>
+
       <div id="pdf-preview-container" class="pdf-preview-container" style="display:none;">
         <div class="pdf-preview-header">
           <span class="pdf-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><polyline points="9 15 12 12 15 15"></polyline></svg></span>
@@ -75,27 +116,109 @@ $baseUrl    = Config::baseUrl();
           <iframe id="pdf-iframe" src="" frameborder="0"></iframe>
         </div>
       </div>
+
       <div id="file-error" class="file-error" style="display:none;"></div>
     </div>
+
     <div class="form-actions">
       <button type="submit" class="btn btn-green">Enviar solicitud</button>
       <a href="<?= $baseUrl ?>/dashboard" class="btn btn-gray">Cancelar</a>
     </div>
+
+    <div style="margin-top:14px;">
+      <a href="<?= $baseUrl ?>/dashboard" class="btn btn-outline btn-sm">Volver</a>
+    </div>
   </form>
 </div>
-<script>
-(function(){
-  var hoy=<?= json_encode($hoy) ?>,ini=document.getElementById('fecha_inicio'),fin=document.getElementById('fecha_fin');
-  ini.min=hoy;fin.min=hoy;
-  ini.addEventListener('change',function(){fin.min=ini.value||hoy;if(fin.value&&fin.value<ini.value)fin.value=ini.value;});
-  document.getElementById('formSolicitud').addEventListener('submit',function(e){
-    if(ini.value<hoy){e.preventDefault();alert('La fecha de inicio no puede ser anterior a hoy.');return;}
-    if(fin.value&&fin.value<ini.value){e.preventDefault();alert('La fecha fin no puede ser anterior al inicio.');}
-  });
 
-  // File upload handling
-  const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
-  const ALLOWED_TYPES = ['application/pdf', '.pdf'];
+<script>
+(function () {
+  var hoy = <?= json_encode($hoy) ?>;
+  var HORAS_POR_DIA = 8;
+
+  var ini = document.getElementById('fecha_inicio');
+  var fin = document.getElementById('fecha_fin');
+  var horas = document.getElementById('duracion_horas');
+  var dias = document.getElementById('duracion_dias');
+  var form = document.getElementById('formSolicitud');
+
+  function limpiarCamposDuracion() {
+    dias.value = '';
+    horas.value = '';
+  }
+
+  function calcularDuracion() {
+    var fechaInicio = ini.value;
+    var fechaFin = fin.value;
+
+    if (!fechaInicio) {
+      limpiarCamposDuracion();
+      return;
+    }
+
+    fin.min = fechaInicio || hoy;
+
+    if (!fechaFin) {
+      fin.value = fechaInicio;
+      fechaFin = fechaInicio;
+    }
+
+    if (fechaFin < fechaInicio) {
+      fin.value = fechaInicio;
+      fechaFin = fechaInicio;
+    }
+
+    var d1 = new Date(fechaInicio + 'T00:00:00');
+    var d2 = new Date(fechaFin + 'T00:00:00');
+
+    if (d2 < d1) {
+      limpiarCamposDuracion();
+      return;
+    }
+
+    var diffMs = d2 - d1;
+    var diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24)) + 1;
+
+    dias.value = diffDays;
+    horas.value = diffDays * HORAS_POR_DIA;
+  }
+
+  if (ini && fin) {
+    ini.addEventListener('change', calcularDuracion);
+    fin.addEventListener('change', calcularDuracion);
+    ini.addEventListener('input', calcularDuracion);
+    fin.addEventListener('input', calcularDuracion);
+  }
+
+  if (form) {
+    form.addEventListener('submit', function (e) {
+      if (!ini.value) {
+        e.preventDefault();
+        alert('Debes seleccionar la fecha de inicio.');
+        return;
+      }
+
+      if (ini.value < hoy) {
+        e.preventDefault();
+        alert('La fecha de inicio no puede ser anterior a hoy.');
+        return;
+      }
+
+      if (!fin.value) {
+        fin.value = ini.value;
+      }
+
+      if (fin.value < ini.value) {
+        e.preventDefault();
+        alert('La fecha fin no puede ser anterior al inicio.');
+        return;
+      }
+
+      calcularDuracion();
+    });
+  }
+
+  const MAX_FILE_SIZE = 5 * 1024 * 1024;
 
   var fileInput = document.getElementById('documento_pdf');
   var previewContainer = document.getElementById('pdf-preview-container');
@@ -132,34 +255,36 @@ $baseUrl    = Config::baseUrl();
     hideError();
   }
 
-  fileInput.addEventListener('change', function() {
-    hideError();
-    var file = this.files[0];
-    if (!file) {
-      clearFile();
-      return;
-    }
+  if (fileInput) {
+    fileInput.addEventListener('change', function () {
+      hideError();
 
-    // Validate file type
-    if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
-      showError('Error: Solo se permiten archivos PDF.');
-      return;
-    }
+      var file = this.files[0];
+      if (!file) {
+        clearFile();
+        return;
+      }
 
-    // Validate file size
-    if (file.size > MAX_FILE_SIZE) {
-      showError('Error: El archivo excede el tamaño máximo de 5MB.');
-      return;
-    }
+      if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
+        showError('Error: Solo se permiten archivos PDF.');
+        return;
+      }
 
-    // Show preview
-    var fileUrl = URL.createObjectURL(file);
-    pdfFilename.textContent = file.name;
-    pdfSize.textContent = formatFileSize(file.size);
-    pdfIframe.src = fileUrl;
-    previewContainer.style.display = 'block';
-  });
+      if (file.size > MAX_FILE_SIZE) {
+        showError('Error: El archivo excede el tamaño máximo de 5MB.');
+        return;
+      }
 
-  removeBtn.addEventListener('click', clearFile);
+      var fileUrl = URL.createObjectURL(file);
+      pdfFilename.textContent = file.name;
+      pdfSize.textContent = formatFileSize(file.size);
+      pdfIframe.src = fileUrl;
+      previewContainer.style.display = 'block';
+    });
+  }
+
+  if (removeBtn) {
+    removeBtn.addEventListener('click', clearFile);
+  }
 })();
 </script>
