@@ -19,9 +19,9 @@ $baseUrl = Config::baseUrl();
       + Nueva solicitud
     </a>
 
- <a href="<?= $baseUrl ?>/exportar/jefe/excel" class="btn btn-green">
-  Descargar reporte Excel
-</a>
+    <a href="<?= $baseUrl ?>/exportar/jefe/excel" class="btn btn-green">
+      Descargar reporte Excel
+    </a>
   </div>
 
 </div>
@@ -34,7 +34,7 @@ $baseUrl = Config::baseUrl();
         <polyline points="12 6 12 12 16 14"/>
       </svg>
     </div>
-    <div class="num"><?= count($pendientes) ?></div>
+    <div class="num"><?= $stats['pendientes'] ?? count($pendientes) ?></div>
     <div class="lbl">Pendientes de Aprobación</div>
   </a>
 
@@ -45,7 +45,7 @@ $baseUrl = Config::baseUrl();
         <polyline points="14 2 14 8 20 8"/>
       </svg>
     </div>
-    <div class="num"><?= count($misSolicitudes) ?></div>
+    <div class="num"><?= $stats['misSolicitudes'] ?? count($misSolicitudes) ?></div>
     <div class="lbl">Mis Solicitudes</div>
   </a>
 
@@ -56,7 +56,7 @@ $baseUrl = Config::baseUrl();
         <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
       </svg>
     </div>
-    <div class="num"><?= count($gestionadas) ?></div>
+    <div class="num"><?= $stats['gestionadas'] ?? count($gestionadas) ?></div>
     <div class="lbl">Historial Gestionado</div>
   </a>
 </div>
@@ -114,6 +114,7 @@ $baseUrl = Config::baseUrl();
   </table>
 </div>
 <?php endif; ?>
+
 <div class="section-header section-header--spaced"><h2>Mis solicitudes personales</h2></div>
 <?php if (empty($misSolicitudes)): ?>
   <div class="empty-state"><p>📋 No tienes solicitudes propias.</p></div>
