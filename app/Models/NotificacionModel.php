@@ -13,16 +13,18 @@ final class NotificacionModel extends Model
      */
     public function crear(string $nitDestinatario, string $tipo, string $mensaje, int $idSolicitud): bool
     {
+        $fechaHora = date('Y-m-d H:i:s');
         $sql = "INSERT INTO ICEBERG.NOTIFICACIONES
                 (NIT_DESTINATARIO, TIPO, MENSAJE, ID_SOLICITUD, LEIDA, FECHA_CREACION)
              VALUES
-                (:nit, :tipo, :mensaje, :solicitud, 0, SYSDATE)";
+                (:nit, :tipo, :mensaje, :solicitud, 0, TO_DATE(:fecha_hora,'YYYY-MM-DD HH24:MI:SS'))";
 
         return $this->db->execute($sql, [
-            ':nit'       => $nitDestinatario,
-            ':tipo'      => $tipo,
-            ':mensaje'   => $mensaje,
-            ':solicitud' => $idSolicitud,
+            ':nit'        => $nitDestinatario,
+            ':tipo'       => $tipo,
+            ':mensaje'    => $mensaje,
+            ':solicitud'  => $idSolicitud,
+            ':fecha_hora' => $fechaHora,
         ]);
     }
 
@@ -32,7 +34,10 @@ final class NotificacionModel extends Model
     public function getNoLeidas(string $nit): array
     {
         return $this->db->query(
-            "SELECT n.*, s.TIPO_SOLICITUD, s.NIT_EMPLEADO, s.ACTIVO as SOLICITUD_ACTIVA
+            "SELECT n.ID, n.NIT_DESTINATARIO, n.TIPO, n.MENSAJE, n.ID_SOLICITUD, n.LEIDA,
+                    TO_CHAR(n.FECHA_CREACION, 'YYYY-MM-DD HH24:MI:SS') as FECHA_CREACION,
+                    TO_CHAR(n.FECHA_LECTURA, 'YYYY-MM-DD HH24:MI:SS') as FECHA_LECTURA,
+                    s.TIPO_SOLICITUD, s.NIT_EMPLEADO, s.ACTIVO as SOLICITUD_ACTIVA
              FROM ICEBERG.NOTIFICACIONES n
              JOIN ICEBERG.SOLICITUDES_PERMISOS s ON s.ID = n.ID_SOLICITUD
              WHERE n.NIT_DESTINATARIO = :nit AND n.LEIDA = 0 AND s.ACTIVO = 1
@@ -48,7 +53,10 @@ final class NotificacionModel extends Model
     public function getTodas(string $nit, int $limite = 50): array
     {
         return $this->db->query(
-            "SELECT n.*, s.TIPO_SOLICITUD, s.NIT_EMPLEADO, s.ACTIVO as SOLICITUD_ACTIVA
+            "SELECT n.ID, n.NIT_DESTINATARIO, n.TIPO, n.MENSAJE, n.ID_SOLICITUD, n.LEIDA,
+                    TO_CHAR(n.FECHA_CREACION, 'YYYY-MM-DD HH24:MI:SS') as FECHA_CREACION,
+                    TO_CHAR(n.FECHA_LECTURA, 'YYYY-MM-DD HH24:MI:SS') as FECHA_LECTURA,
+                    s.TIPO_SOLICITUD, s.NIT_EMPLEADO, s.ACTIVO as SOLICITUD_ACTIVA
              FROM ICEBERG.NOTIFICACIONES n
              JOIN ICEBERG.SOLICITUDES_PERMISOS s ON s.ID = n.ID_SOLICITUD
              WHERE n.NIT_DESTINATARIO = :nit AND s.ACTIVO = 1
@@ -77,11 +85,12 @@ final class NotificacionModel extends Model
      */
     public function marcarLeida(int $idNotificacion, string $nit): bool
     {
+        $fechaHora = date('Y-m-d H:i:s');
         return $this->db->execute(
             "UPDATE ICEBERG.NOTIFICACIONES
-             SET LEIDA = 1, FECHA_LECTURA = SYSDATE
+             SET LEIDA = 1, FECHA_LECTURA = TO_DATE(:fecha_hora,'YYYY-MM-DD HH24:MI:SS')
              WHERE ID = :id AND NIT_DESTINATARIO = :nit",
-            [':id' => $idNotificacion, ':nit' => $nit]
+            [':id' => $idNotificacion, ':nit' => $nit, ':fecha_hora' => $fechaHora]
         );
     }
 
@@ -90,11 +99,12 @@ final class NotificacionModel extends Model
      */
     public function marcarTodasLeidas(string $nit): bool
     {
+        $fechaHora = date('Y-m-d H:i:s');
         return $this->db->execute(
             "UPDATE ICEBERG.NOTIFICACIONES
-             SET LEIDA = 1, FECHA_LECTURA = SYSDATE
+             SET LEIDA = 1, FECHA_LECTURA = TO_DATE(:fecha_hora,'YYYY-MM-DD HH24:MI:SS')
              WHERE NIT_DESTINATARIO = :nit AND LEIDA = 0",
-            [':nit' => $nit]
+            [':nit' => $nit, ':fecha_hora' => $fechaHora]
         );
     }
 
