@@ -20,6 +20,7 @@ $cssUrl     = $baseUrl . '/public/css/ugc.css';
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="<?= $cssUrl ?>">
+
 </head>
 <body>
 <header class="ugc-header">
@@ -30,14 +31,8 @@ $cssUrl     = $baseUrl . '/public/css/ugc.css';
     <img src="<?= $baseUrl ?>/public/images/Logo%20ULGC.png" alt="Universidad La Gran Colombia" class="header-logo" height="50">
   </a>
   <nav>
-    <a href="<?= $baseUrl ?>/dashboard">Inicio</a>
-    <?php if (in_array($user['rol'] ?? '', [ROL_ADMIN, ROL_RRHH, ROL_JEFE], true)): ?>
-      <a href="<?= $baseUrl ?>/solicitudes">Todas las solicitudes</a>
-    <?php endif; ?>
-    <?php if (in_array($user['rol'] ?? '', [ROL_EMPLEADO, ROL_JEFE], true)): ?>
-      <a href="<?= $baseUrl ?>/solicitud/crear">+ Nueva solicitud</a>
-    <?php endif; ?>
   </nav>
+
   <!-- Notificaciones -->
   <div class="notificacion-wrap">
     <button class="notificacion-bell" id="notifBell" aria-label="Notificaciones">
@@ -132,10 +127,20 @@ document.addEventListener('DOMContentLoaded',()=>{
     c.style.cssText='opacity:0;transform:translateY(14px);transition:opacity .35s ease,transform .35s ease';
     setTimeout(()=>{c.style.opacity='1';c.style.transform='none';},80+i*70);
   });
-  // Cerrar menú móvil al hacer clic en un enlace
+
   document.querySelectorAll('.ugc-header nav a').forEach(a=>{
     a.addEventListener('click',()=>document.querySelector('.ugc-header nav').classList.remove('nav-open'));
   });
+
+  const headerSearchForm = document.querySelector('.header-search form');
+  if (headerSearchForm) {
+    headerSearchForm.addEventListener('submit', function(e){
+      const input = this.querySelector('input[name="q"]');
+      if (input && !input.value.trim()) {
+        e.preventDefault();
+      }
+    });
+  }
 
   // ============================================
   // SISTEMA DE NOTIFICACIONES CON CACHE LOCAL
@@ -222,7 +227,6 @@ document.addEventListener('DOMContentLoaded',()=>{
     });
   }
 
-  // Cerrar dropdown al hacer clic fuera
   document.addEventListener('click', (e) => {
     if (dropdownOpen && !notifDropdown.contains(e.target) && !notifBell.contains(e.target)) {
       dropdownOpen = false;
@@ -240,7 +244,6 @@ document.addEventListener('DOMContentLoaded',()=>{
   // Refrescar cada 60 segundos
   setInterval(() => actualizarContador(false), 60000);
 
-  // Marcar todas como leídas
   if (markAllBtn) {
     markAllBtn.addEventListener('click', async () => {
       const csrfToken = document.querySelector('input[name="_csrf_token"]')?.value;
@@ -249,7 +252,6 @@ document.addEventListener('DOMContentLoaded',()=>{
         return;
       }
 
-      // Deshabilitar botón durante la petición
       markAllBtn.disabled = true;
       markAllBtn.textContent = 'Procesando...';
 
@@ -304,7 +306,6 @@ document.addEventListener('DOMContentLoaded',()=>{
     }
   }
 
-  // Función para cargar notificaciones
   async function cargarNotificaciones() {
     // Primero, mostrar desde caché si existe (carga instantánea)
     const cache = cargarCache();
@@ -339,7 +340,6 @@ document.addEventListener('DOMContentLoaded',()=>{
     }
   }
 
-  // Renderizar notificaciones
   function renderizarNotificaciones() {
     if (!notifList) return;
 
@@ -376,7 +376,6 @@ document.addEventListener('DOMContentLoaded',()=>{
     }).join('');
   }
 
-  // Marcar una notificación como leída
   window.marcarLeida = async function(id, event) {
     const csrfToken = document.querySelector('input[name="_csrf_token"]')?.value;
     if (!csrfToken) {
@@ -416,7 +415,6 @@ document.addEventListener('DOMContentLoaded',()=>{
     }
   };
 
-  // Helpers
   function getIconoNotificacion(tipo) {
     const svgs = {
       'campana': '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>',
@@ -449,15 +447,11 @@ document.addEventListener('DOMContentLoaded',()=>{
   function formatearFecha(fecha) {
     if (!fecha) return '';
 
-    // Convertir el formato Oracle/PHP a ISO 8601 si es necesario
-    // Soporta: "2024-01-15 14:30:00" o "15/01/2024 14:30:00"
     let fechaStr = fecha;
     if (typeof fecha === 'string') {
-      // Si es formato "YYYY-MM-DD HH:MM:SS", convertir a ISO con zona horaria Colombia
       if (/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/.test(fecha)) {
-        fechaStr = fecha.replace(' ', 'T') + '-05:00'; // UTC-5 Colombia
+        fechaStr = fecha.replace(' ', 'T') + '-05:00';
       }
-      // Si es formato "DD/MM/YYYY HH:MM:SS", convertir
       else if (/^\d{2}\/\d{2}\/\d{4} \d{2}:\d{2}:\d{2}$/.test(fecha)) {
         const parts = fecha.match(/(\d{2})\/(\d{2})\/(\d{4}) (\d{2}):(\d{2}):(\d{2})/);
         if (parts) {
@@ -469,8 +463,7 @@ document.addEventListener('DOMContentLoaded',()=>{
     const date = new Date(fechaStr);
     const now = new Date();
 
-    // Ajustar la hora actual a Colombia (UTC-5) para comparación correcta
-    const colombiaOffset = 5 * 60 * 60 * 1000; // 5 horas en ms
+    const colombiaOffset = 5 * 60 * 60 * 1000;
     const nowColombia = new Date(now.getTime() + (now.getTimezoneOffset() * 60000) - colombiaOffset);
 
     const diffMs = nowColombia - date;
@@ -494,9 +487,7 @@ document.addEventListener('DOMContentLoaded',()=>{
     return div.innerHTML;
   }
 
-  // Mostrar mensaje toast al usuario
   function mostrarToast(mensaje, tipo = 'info') {
-    // Crear elemento toast
     const toast = document.createElement('div');
     toast.className = `toast-notification toast-${tipo}`;
     toast.innerHTML = `
@@ -504,16 +495,13 @@ document.addEventListener('DOMContentLoaded',()=>{
       <button class="toast-close" onclick="this.parentElement.remove()">×</button>
     `;
 
-    // Agregar al body
     document.body.appendChild(toast);
 
-    // Animar entrada
     requestAnimationFrame(() => {
       toast.style.opacity = '1';
       toast.style.transform = 'translateX(0)';
     });
 
-    // Auto-cerrar después de 3 segundos
     setTimeout(() => {
       toast.style.opacity = '0';
       toast.style.transform = 'translateX(100%)';

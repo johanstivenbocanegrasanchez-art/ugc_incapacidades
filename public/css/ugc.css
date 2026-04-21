@@ -66,8 +66,17 @@ body{background:var(--bg);color:var(--text);font-size:15px;min-height:100vh;font
 .ugc-header nav a[href*="crear"]{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3)}
 .ugc-header nav a[href*="crear"]:hover{background:rgba(255,255,255,.25)}
 .user-chip{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);border-radius:24px;padding:8px 18px;font-size:13px;display:flex;align-items:center;gap:10px;white-space:nowrap;font-weight:500}
-.logout{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.3);color:#fff;font-size:13px;padding:9px 18px;border-radius:10px;cursor:pointer;transition:var(--tr);margin-left:6px;font-family:inherit;font-weight:600}
-.logout:hover{background:rgba(255,255,255,.25);transform:translateY(-1px)}
+.logout{
+  background: rgba(255,255,255,.10);
+  border: 1px solid rgba(255,255,255,.22);
+  color: #fff;
+  box-shadow: none;
+  cursor: pointer;
+}
+
+.logout:hover{
+  background: rgba(255,255,255,.16);
+}
 
 /* Menú hamburguesa móvil */
 .menu-toggle{display:none;flex-direction:column;gap:4px;padding:8px;background:none;border:none;cursor:pointer}
@@ -1012,3 +1021,58 @@ body{background:var(--bg);color:var(--text);font-size:15px;min-height:100vh;font
 .stat-card-link .lbl{
   color: inherit;
 }
+.header-search{
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      max-width: 520px;
+      margin: 0 18px;
+    }
+
+    .header-search form{
+      width: 100%;
+      position: relative;
+    }
+
+    .header-search input{
+      width: 100%;
+      height: 42px;
+      border: 1px solid rgba(255,255,255,.22);
+      border-radius: 999px;
+      background: rgba(255,255,255,.12);
+      color: #fff;
+      padding: 0 16px 0 42px;
+      outline: none;
+      font-size: 14px;
+      transition: all .25s ease;
+    }
+
+    .header-search input::placeholder{
+      color: rgba(255,255,255,.75);
+    }
+
+    .header-search input:focus{
+      background: rgba(255,255,255,.18);
+      border-color: rgba(255,255,255,.38);
+      box-shadow: 0 0 0 3px rgba(255,255,255,.08);
+    }
+
+    .header-search svg{
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 17px;
+      height: 17px;
+      stroke: rgba(255,255,255,.85);
+      pointer-events: none;
+    }
+
+    @media (max-width: 900px){
+      .header-search{
+        order: 5;
+        width: 100%;
+        max-width: 100%;
+        margin: 10px 0 0;
+      }
+    }
