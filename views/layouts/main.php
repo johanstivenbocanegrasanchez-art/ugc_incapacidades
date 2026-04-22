@@ -97,7 +97,10 @@ $cssUrl     = $baseUrl . '/public/css/ugc.css';
 
 <main class="ugc-wrap">
   <?php if ($flash): ?>
-    <div class="flash flash-<?= $flash['type'] === 'success' ? 'ok' : 'err' ?> animate-fade-down">
+    <div
+      class="flash flash-<?= $flash['type'] === 'success' ? 'ok' : 'err' ?> animate-fade-down"
+      <?= $flash['type'] === 'success' ? 'data-auto-dismiss="true"' : '' ?>
+    >
       <?= $flash['type'] === 'success' ? 'Exito:' : 'Error:' ?> <?= htmlspecialchars($flash['message']) ?>
     </div>
   <?php endif; ?>
@@ -159,6 +162,14 @@ document.addEventListener('DOMContentLoaded',()=>{
         e.preventDefault();
       }
     });
+  }
+
+  const flashAutoDismiss = document.querySelector('.flash[data-auto-dismiss="true"]');
+  if (flashAutoDismiss) {
+    setTimeout(() => {
+      flashAutoDismiss.classList.add('flash-exit');
+      setTimeout(() => flashAutoDismiss.remove(), 400);
+    }, 3500);
   }
 
   // ============================================
