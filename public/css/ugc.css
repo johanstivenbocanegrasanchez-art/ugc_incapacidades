@@ -67,15 +67,27 @@ body{background:var(--bg);color:var(--text);font-size:15px;min-height:100vh;font
 .ugc-header nav a[href*="crear"]:hover{background:rgba(255,255,255,.25)}
 .user-chip{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);border-radius:24px;padding:8px 18px;font-size:13px;display:flex;align-items:center;gap:10px;white-space:nowrap;font-weight:500}
 .logout{
-  background: rgba(255,255,255,.10);
+  background: linear-gradient(135deg, rgba(255,255,255,.14), rgba(255,255,255,.08));
   border: 1px solid rgba(255,255,255,.22);
   color: #fff;
-  box-shadow: none;
+  padding: 10px 18px;
+  border-radius: 12px;
+  box-shadow: 0 6px 18px rgba(0,0,0,.18);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   cursor: pointer;
+  transition: all .25s ease;
 }
 
 .logout:hover{
-  background: rgba(255,255,255,.16);
+  background: linear-gradient(135deg, rgba(255,255,255,.22), rgba(255,255,255,.12));
+  transform: translateY(-2px);
+  box-shadow: 0 10px 22px rgba(0,0,0,.22);
+}
+
+.logout:active{
+  transform: translateY(0);
+  box-shadow: 0 4px 12px rgba(0,0,0,.18);
 }
 
 /* Menú hamburguesa móvil */
