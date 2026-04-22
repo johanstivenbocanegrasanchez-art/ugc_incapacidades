@@ -125,9 +125,10 @@ $baseUrl    = Config::baseUrl();
       <a href="<?= $baseUrl ?>/dashboard" class="btn btn-gray">Cancelar</a>
     </div>
 
-    <div style="margin-top:14px;">
-      <a href="<?= $baseUrl ?>/dashboard" class="btn btn-outline btn-sm">Volver</a>
-    </div>
+<div class="volver-wrap">
+  <a href="<?= $baseUrl ?>/dashboard" class="btn btn-outline btn-volver">Volver</a>
+</div>
+
   </form>
 </div>
 
