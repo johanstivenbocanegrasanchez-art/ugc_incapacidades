@@ -8,9 +8,12 @@ $baseUrl = Config::baseUrl();
   <div class="login-bg-pattern"></div>
   <div class="login-card animate-fade-up">
     <div class="login-brand">
-      <div class="brand-icon">
-        <img src="<?= $baseUrl ?>/public/images/Logo%20ULGC.png" alt="Universidad La Gran Colombia" class="login-logo">
-      </div>
+   <div class="brand-icon">
+  <div class="logo-capibara-wrap">
+    <img src="<?= $baseUrl ?>/public/images/Logo%20ULGC.png" alt="Universidad La Gran Colombia" class="login-logo">
+    <img src="<?= $baseUrl ?>/public/images/capibara-login.png" alt="Capibara" class="login-capibara">
+  </div>
+</div>
       <h1 class="brand-title">Portal de Solicitudes</h1>
       <p class="brand-subtitle">Permisos e Incapacidades</p>
     </div>
@@ -42,8 +45,17 @@ $baseUrl = Config::baseUrl();
           </span>
           <input type="password" id="password" name="password" class="input-field" placeholder="Tu contraseña" required autocomplete="current-password"/>
           <button type="button" class="input-toggle" onclick="togglePassword()" aria-label="Mostrar contraseña">
-            <svg id="eyeIcon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-          </button>
+  <svg id="eyeOpen" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+    <circle cx="12" cy="12" r="3"/>
+  </svg>
+
+  <svg id="eyeClosed" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none;">
+    <path d="M17.94 17.94A10.94 10.94 0 0 1 12 20C5 20 1 12 1 12a21.77 21.77 0 0 1 5.06-6.94"/>
+    <path d="M9.9 4.24A10.94 10.94 0 0 1 12 4c7 0 11 8 11 8a21.8 21.8 0 0 1-2.16 3.19"/>
+    <path d="M1 1l22 22"/>
+  </svg>
+</button>
         </div>
       </div>
 
@@ -74,8 +86,18 @@ $baseUrl = Config::baseUrl();
 <script>
 function togglePassword() {
   const pwd = document.getElementById('password');
-  const icon = document.getElementById('eyeIcon');
-  pwd.type = pwd.type === 'password' ? 'text' : 'password';
+  const eyeOpen = document.getElementById('eyeOpen');
+  const eyeClosed = document.getElementById('eyeClosed');
+
+  if (pwd.type === 'password') {
+    pwd.type = 'text';
+    eyeOpen.style.display = 'none';
+    eyeClosed.style.display = 'block';
+  } else {
+    pwd.type = 'password';
+    eyeOpen.style.display = 'block';
+    eyeClosed.style.display = 'none';
+  }
 }
 function fillLogin(cedula) {
   console.log('Fill login llamado con cédula:', cedula);
