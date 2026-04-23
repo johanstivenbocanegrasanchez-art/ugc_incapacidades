@@ -71,17 +71,5 @@ $total = $stats['TOTAL'] ?? count($todas ?? []);
 
 <div class="section-header">
   <h2>Todas las solicitudes</h2>
-  <form method="get" action="<?= $baseUrl ?>/solicitudes" class="filter-form">
-    <select name="estado" class="filter-select">
-      <option value="">Todos los estados</option>
-      <?php foreach ($labels as $k => $v): ?><option value="<?= $k ?>" <?= (($filtros['estado'] ?? '') === $k) ? 'selected' : '' ?>><?= $v ?></option><?php endforeach; ?>
-    </select>
-    <select name="tipo" class="filter-select">
-      <option value="">Todos los tipos</option>
-      <?php foreach ($tipos as $k => $v): ?><option value="<?= $k ?>" <?= (($filtros['tipo'] ?? '') === $k) ? 'selected' : '' ?>><?= $v ?></option><?php endforeach; ?>
-    </select>
-    <button type="submit" class="btn btn-outline btn-sm">Filtrar</button>
-    <a href="<?= $baseUrl ?>/solicitudes" class="btn btn-gray btn-sm">Limpiar</a>
-  </form>
 </div>
 <?php $filas = $todas; require __DIR__ . '/../shared/tabla_solicitudes.php'; ?>

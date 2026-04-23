@@ -46,6 +46,138 @@ function urlConFiltro(string $baseUrl, string $busqueda, string $rol): string {
 .stats-row a.stat-card:hover * {
     text-decoration: none !important;
 }
+.stats-row a.stat-card.filtro-activo {
+    outline: 2px solid rgba(15,23,42,0.06);
+}
+.stats-row a.stat-card.filtro-total::before {
+    background: linear-gradient(90deg,#15803d,#4ade80) !important;
+}
+.stats-row a.stat-card.filtro-admin::before {
+    background: linear-gradient(90deg,#d97706,#fbbf24) !important;
+}
+.stats-row a.stat-card.filtro-jefe::before {
+    background: linear-gradient(90deg,#2563eb,#60a5fa) !important;
+}
+.stats-row a.stat-card.filtro-empleado::before {
+    background: linear-gradient(90deg,#6b7280,#cbd5e1) !important;
+}
+.stats-row a.stat-card.filtro-activo.filtro-total {
+    background: linear-gradient(135deg,#f0fdf4 0%,#ffffff 100%) !important;
+    border: 1px solid rgba(21,128,61,0.24) !important;
+    box-shadow: 0 8px 18px rgba(21,128,61,0.10) !important;
+}
+.stats-row a.stat-card.filtro-activo.filtro-admin {
+    background: linear-gradient(135deg,#fffbeb 0%,#ffffff 100%) !important;
+    border: 1px solid rgba(217,119,6,0.24) !important;
+    box-shadow: 0 8px 18px rgba(245,158,11,0.12) !important;
+}
+.stats-row a.stat-card.filtro-activo.filtro-jefe {
+    background: linear-gradient(135deg,#eff6ff 0%,#ffffff 100%) !important;
+    border: 1px solid rgba(37,99,235,0.22) !important;
+    box-shadow: 0 8px 18px rgba(59,130,246,0.12) !important;
+}
+.stats-row a.stat-card.filtro-activo.filtro-empleado {
+    background: linear-gradient(135deg,#f8fafc 0%,#ffffff 100%) !important;
+    border: 1px solid rgba(107,114,128,0.22) !important;
+    box-shadow: 0 8px 18px rgba(107,114,128,0.10) !important;
+}
+.stats-row a.stat-card.filtro-activo::before {
+    height: 4px;
+}
+.stats-row a.stat-card.filtro-activo.filtro-total::before {
+    background: linear-gradient(90deg,#15803d,#4ade80) !important;
+}
+.stats-row a.stat-card.filtro-activo.filtro-admin::before {
+    background: linear-gradient(90deg,#d97706,#fbbf24) !important;
+}
+.stats-row a.stat-card.filtro-activo.filtro-jefe::before {
+    background: linear-gradient(90deg,#2563eb,#60a5fa) !important;
+}
+.stats-row a.stat-card.filtro-activo.filtro-empleado::before {
+    background: linear-gradient(90deg,#6b7280,#cbd5e1) !important;
+}
+.stats-row a.stat-card.filtro-activo::after {
+    content: 'Vista actual';
+    position: absolute;
+    right: 18px;
+    bottom: 16px;
+    padding: 4px 9px;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.92);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0;
+}
+.stats-row a.stat-card.filtro-activo.filtro-total::after {
+    color: #166534;
+    border: 1px solid rgba(21,128,61,0.16);
+}
+.stats-row a.stat-card.filtro-activo.filtro-admin::after {
+    color: #b45309;
+    border: 1px solid rgba(217,119,6,0.16);
+}
+.stats-row a.stat-card.filtro-activo.filtro-jefe::after {
+    color: #1d4ed8;
+    border: 1px solid rgba(37,99,235,0.16);
+}
+.stats-row a.stat-card.filtro-activo.filtro-empleado::after {
+    color: #4b5563;
+    border: 1px solid rgba(107,114,128,0.16);
+}
+.stats-row a.stat-card.filtro-activo .num,
+.stats-row a.stat-card.filtro-activo .lbl,
+.stats-row a.stat-card.filtro-activo div {
+    color: #1f2937 !important;
+}
+.stats-row a.stat-card.filtro-activo.filtro-total .num,
+.stats-row a.stat-card.filtro-activo.filtro-total .lbl,
+.stats-row a.stat-card.filtro-activo.filtro-total div {
+    color: #166534 !important;
+}
+.stats-row a.stat-card.filtro-activo.filtro-admin .num,
+.stats-row a.stat-card.filtro-activo.filtro-admin .lbl,
+.stats-row a.stat-card.filtro-activo.filtro-admin div {
+    color: #b45309 !important;
+}
+.stats-row a.stat-card.filtro-activo.filtro-jefe .num,
+.stats-row a.stat-card.filtro-activo.filtro-jefe .lbl,
+.stats-row a.stat-card.filtro-activo.filtro-jefe div {
+    color: #1d4ed8 !important;
+}
+.stats-row a.stat-card.filtro-activo.filtro-empleado .num,
+.stats-row a.stat-card.filtro-activo.filtro-empleado .lbl,
+.stats-row a.stat-card.filtro-activo.filtro-empleado div {
+    color: #4b5563 !important;
+}
+.filtro-chip-activo {
+    display: none;
+    align-items: center;
+    gap: 5px;
+    margin-top: 8px;
+    padding: 4px 9px;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.2);
+    border: 1px solid rgba(255,255,255,0.3);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+}
+.stats-row a.stat-card.filtro-activo.filtro-total > div > div:last-child {
+    background: #dcfce7 !important;
+    color: #166534 !important;
+}
+.stats-row a.stat-card.filtro-activo.filtro-admin > div > div:last-child {
+    background: #fef3c7 !important;
+    color: #b45309 !important;
+}
+.stats-row a.stat-card.filtro-activo.filtro-jefe > div > div:last-child {
+    background: #dbeafe !important;
+    color: #1d4ed8 !important;
+}
+.stats-row a.stat-card.filtro-activo.filtro-empleado > div > div:last-child {
+    background: #e5e7eb !important;
+    color: #4b5563 !important;
+}
 </style>
 
 <!-- Header Mejorado -->
@@ -85,19 +217,26 @@ function urlConFiltro(string $baseUrl, string $busqueda, string $rol): string {
     
     <!-- Total (limpia filtro) -->
     <a href="<?= urlConFiltro($baseUrl, $busqueda ?? '', '') ?>" 
-       class="stat-card <?= $filtroRol === '' ? 'filtro-activo' : '' ?>" 
-       style="background:<?= $filtroRol === '' ? 'linear-gradient(135deg,#0a5a1f 0%,#128b3b 100%)' : '#f3f4f6' ?>;color:<?= $filtroRol === '' ? 'white' : '#374151' ?>;border:<?= $filtroRol === '' ? 'none' : '2px solid #e5e7eb' ?>;text-decoration:none !important;transition:all 0.2s;"
-       onmouseover="if(!this.classList.contains('filtro-activo')) { this.style.transform='translateY(-4px)'; this.style.boxShadow='0 8px 25px rgba(0,0,0,0.15)'; }"
+       class="stat-card filtro-total <?= $filtroRol === '' ? 'filtro-activo' : '' ?>" 
+       style="background:<?= $filtroRol === '' ? 'linear-gradient(135deg,#0a5a1f 0%,#128b3b 100%)' : '#f0fdf4' ?>;color:<?= $filtroRol === '' ? 'white' : '#166534' ?>;border:<?= $filtroRol === '' ? 'none' : '1px solid #86efac' ?>;text-decoration:none !important;transition:all 0.2s;"
+       onmouseover="if(!this.classList.contains('filtro-activo')) { this.style.transform='translateY(-4px)'; this.style.boxShadow='0 8px 25px rgba(21,128,61,0.18)'; }"
        onmouseout="this.style.transform='';this.style.boxShadow='';">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;">
             <div>
-                <div style="font-size:32px;font-weight:700;"><?= $total ?? count($empleados) ?></div>
-                <div style="font-size:14px;opacity:<?= $filtroRol === '' ? '0.9' : '1' ?>;">Total Empleados</div>
+                <div style="font-size:32px;font-weight:700;color:<?= $filtroRol === '' ? 'white' : '#166534' ?>;"><?= $total ?? count($empleados) ?></div>
+                <div style="font-size:14px;color:<?= $filtroRol === '' ? 'white' : '#166534' ?>;opacity:<?= $filtroRol === '' ? '0.9' : '1' ?>;">Total Empleados</div>
                 <?php if ($filtroRol !== ''): ?>
-                    <div style="font-size:11px;margin-top:4px;opacity:0.8;">↻ Ver todos</div>
+                    <div style="font-size:11px;margin-top:4px;color:#15803d;opacity:0.85;">↻ Ver todos</div>
+                <?php else: ?>
+                    <span class="filtro-chip-activo">
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                            <polyline points="20 6 9 17 4 12"/>
+                        </svg>
+                        Vista actual
+                    </span>
                 <?php endif; ?>
             </div>
-            <div style="width:40px;height:40px;background:<?= $filtroRol === '' ? 'rgba(255,255,255,0.2)' : '#0a5a1f' ?>;border-radius:10px;display:flex;align-items:center;justify-content:center;">
+            <div style="width:40px;height:40px;background:<?= $filtroRol === '' ? 'rgba(255,255,255,0.2)' : '#166534' ?>;border-radius:10px;display:flex;align-items:center;justify-content:center;color:white;">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
                     <circle cx="9" cy="7" r="4"/>
@@ -129,7 +268,7 @@ function urlConFiltro(string $baseUrl, string $busqueda, string $rol): string {
 
     <!-- Administradores -->
     <a href="<?= urlConFiltro($baseUrl, $busqueda ?? '', 'admin') ?>" 
-       class="stat-card <?= $filtroRol === 'admin' ? 'filtro-activo' : '' ?>"
+       class="stat-card filtro-admin <?= $filtroRol === 'admin' ? 'filtro-activo' : '' ?>"
        style="background:<?= $filtroRol === 'admin' ? '#f59e0b' : '#fef3c7' ?>;border:<?= $filtroRol === 'admin' ? '2px solid #d97706' : '1px solid #f59e0b' ?>;text-decoration:none !important;transition:all 0.2s;"
        onmouseover="if(!this.classList.contains('filtro-activo')) { this.style.transform='translateY(-4px)'; this.style.boxShadow='0 8px 25px rgba(245,158,11,0.3)'; }"
        onmouseout="this.style.transform='';this.style.boxShadow='';">
@@ -138,10 +277,15 @@ function urlConFiltro(string $baseUrl, string $busqueda, string $rol): string {
                 <div style="font-size:32px;font-weight:700;color:<?= $filtroRol === 'admin' ? 'white' : '#92400e' ?>;"><?= $totalAdmins ?></div>
                 <div style="font-size:14px;color:<?= $filtroRol === 'admin' ? 'white' : '#b45309' ?>;font-weight:<?= $filtroRol === 'admin' ? '600' : '400' ?>;">Administradores</div>
                 <?php if ($filtroRol === 'admin'): ?>
-                    <div style="font-size:11px;color:white;margin-top:4px;opacity:0.9;">(Filtrando)</div>
+                    <span class="filtro-chip-activo">
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                            <polyline points="20 6 9 17 4 12"/>
+                        </svg>
+                        Vista actual
+                    </span>
                 <?php endif; ?>
             </div>
-            <div style="width:40px;height:40px;background:<?= $filtroRol === 'admin' ? 'rgba(255,255,255,0.3)' : '#f59e0b' ?>;border-radius:10px;display:flex;align-items:center;justify-content:center;color:<?= $filtroRol === 'admin' ? '#92400e' : 'white' ?>;">
+            <div style="width:40px;height:40px;background:<?= $filtroRol === 'admin' ? 'rgba(255,255,255,0.3)' : '#f59e0b' ?>;border-radius:10px;display:flex;align-items:center;justify-content:center;color:white;">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
                 </svg>
@@ -151,7 +295,7 @@ function urlConFiltro(string $baseUrl, string $busqueda, string $rol): string {
 
     <!-- Jefes -->
     <a href="<?= urlConFiltro($baseUrl, $busqueda ?? '', 'jefe') ?>" 
-       class="stat-card <?= $filtroRol === 'jefe' ? 'filtro-activo' : '' ?>"
+       class="stat-card filtro-jefe <?= $filtroRol === 'jefe' ? 'filtro-activo' : '' ?>"
        style="background:<?= $filtroRol === 'jefe' ? '#3b82f6' : '#dbeafe' ?>;border:<?= $filtroRol === 'jefe' ? '2px solid #2563eb' : '1px solid #3b82f6' ?>;text-decoration:none !important;transition:all 0.2s;"
        onmouseover="if(!this.classList.contains('filtro-activo')) { this.style.transform='translateY(-4px)'; this.style.boxShadow='0 8px 25px rgba(59,130,246,0.3)'; }"
        onmouseout="this.style.transform='';this.style.boxShadow='';">
@@ -160,10 +304,15 @@ function urlConFiltro(string $baseUrl, string $busqueda, string $rol): string {
                 <div style="font-size:32px;font-weight:700;color:<?= $filtroRol === 'jefe' ? 'white' : '#1e40af' ?>;"><?= $totalJefes ?></div>
                 <div style="font-size:14px;color:<?= $filtroRol === 'jefe' ? 'white' : '#1d4ed8' ?>;font-weight:<?= $filtroRol === 'jefe' ? '600' : '400' ?>;">Jefes</div>
                 <?php if ($filtroRol === 'jefe'): ?>
-                    <div style="font-size:11px;color:white;margin-top:4px;opacity:0.9;">(Filtrando)</div>
+                    <span class="filtro-chip-activo">
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                            <polyline points="20 6 9 17 4 12"/>
+                        </svg>
+                        Vista actual
+                    </span>
                 <?php endif; ?>
             </div>
-            <div style="width:40px;height:40px;background:<?= $filtroRol === 'jefe' ? 'rgba(255,255,255,0.3)' : '#3b82f6' ?>;border-radius:10px;display:flex;align-items:center;justify-content:center;color:<?= $filtroRol === 'jefe' ? '#1e40af' : 'white' ?>;">
+            <div style="width:40px;height:40px;background:<?= $filtroRol === 'jefe' ? 'rgba(255,255,255,0.3)' : '#3b82f6' ?>;border-radius:10px;display:flex;align-items:center;justify-content:center;color:white;">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
                     <circle cx="12" cy="7" r="4"/>
@@ -174,7 +323,7 @@ function urlConFiltro(string $baseUrl, string $busqueda, string $rol): string {
 
     <!-- Empleados -->
     <a href="<?= urlConFiltro($baseUrl, $busqueda ?? '', 'empleado') ?>" 
-       class="stat-card <?= $filtroRol === 'empleado' ? 'filtro-activo' : '' ?>"
+       class="stat-card filtro-empleado <?= $filtroRol === 'empleado' ? 'filtro-activo' : '' ?>"
        style="background:<?= $filtroRol === 'empleado' ? '#6b7280' : '#f3f4f6' ?>;border:<?= $filtroRol === 'empleado' ? '2px solid #4b5563' : '1px solid #9ca3af' ?>;text-decoration:none !important;transition:all 0.2s;"
        onmouseover="if(!this.classList.contains('filtro-activo')) { this.style.transform='translateY(-4px)'; this.style.boxShadow='0 8px 25px rgba(107,114,128,0.3)'; }"
        onmouseout="this.style.transform='';this.style.boxShadow='';">
@@ -183,10 +332,15 @@ function urlConFiltro(string $baseUrl, string $busqueda, string $rol): string {
                 <div style="font-size:32px;font-weight:700;color:<?= $filtroRol === 'empleado' ? 'white' : '#374151' ?>;"><?= $totalEmpleadosRegulares ?></div>
                 <div style="font-size:14px;color:<?= $filtroRol === 'empleado' ? 'white' : '#4b5563' ?>;font-weight:<?= $filtroRol === 'empleado' ? '600' : '400' ?>;">Empleados</div>
                 <?php if ($filtroRol === 'empleado'): ?>
-                    <div style="font-size:11px;color:white;margin-top:4px;opacity:0.9;">(Filtrando)</div>
+                    <span class="filtro-chip-activo">
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                            <polyline points="20 6 9 17 4 12"/>
+                        </svg>
+                        Vista actual
+                    </span>
                 <?php endif; ?>
             </div>
-            <div style="width:40px;height:40px;background:<?= $filtroRol === 'empleado' ? 'rgba(255,255,255,0.3)' : '#6b7280' ?>;border-radius:10px;display:flex;align-items:center;justify-content:center;color:<?= $filtroRol === 'empleado' ? '#374151' : 'white' ?>;">
+            <div style="width:40px;height:40px;background:<?= $filtroRol === 'empleado' ? 'rgba(255,255,255,0.3)' : '#6b7280' ?>;border-radius:10px;display:flex;align-items:center;justify-content:center;color:white;">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
                     <circle cx="12" cy="7" r="4"/>
@@ -445,8 +599,9 @@ function urlConFiltro(string $baseUrl, string $busqueda, string $rol): string {
     <!-- Paginación Mejorada -->
     <?php if (($totalPaginas ?? 1) > 1): 
         $paginaActual = $pagina ?? 1;
-        $rangoInicio = max(1, $paginaActual - 2);
-        $rangoFin = min($totalPaginas, $paginaActual + 2);
+        $tamanoVentana = 4;
+        $rangoInicio = max(2, min($paginaActual - 1, max(2, $totalPaginas - $tamanoVentana + 2)));
+        $rangoFin = min($totalPaginas, $rangoInicio + $tamanoVentana - 2);
     ?>
         <div class="pagination animate-fade-up" style="display:flex;justify-content:center;align-items:center;gap:8px;padding:20px;background:white;border-radius:12px;">
             
@@ -470,12 +625,15 @@ function urlConFiltro(string $baseUrl, string $busqueda, string $rol): string {
             
             <!-- Números de página -->
             <div style="display:flex;gap:4px;">
-                <?php if ($rangoInicio > 1): ?>
+                <?php if ($paginaActual === 1): ?>
+                    <button class="btn btn-sm btn-green" style="min-width:36px;">1</button>
+                <?php else: ?>
                     <a href="<?= $baseUrl ?>/admin/empleados?<?= http_build_query(array_filter(['pagina' => 1, 'q' => $busqueda ?? '', 'rol' => $filtroRol ?? ''])) ?>" 
-                       class="btn btn-sm btn-outline">1</a>
-                    <?php if ($rangoInicio > 2): ?>
-                        <span style="padding:6px 8px;color:var(--muted);">...</span>
-                    <?php endif; ?>
+                       class="btn btn-sm btn-outline" style="min-width:36px;">1</a>
+                <?php endif; ?>
+
+                <?php if ($rangoInicio > 2): ?>
+                    <span style="padding:6px 8px;color:var(--muted);">...</span>
                 <?php endif; ?>
                 
                 <?php for ($i = $rangoInicio; $i <= $rangoFin; $i++): ?>
@@ -488,11 +646,7 @@ function urlConFiltro(string $baseUrl, string $busqueda, string $rol): string {
                 <?php endfor; ?>
                 
                 <?php if ($rangoFin < $totalPaginas): ?>
-                    <?php if ($rangoFin < $totalPaginas - 1): ?>
-                        <span style="padding:6px 8px;color:var(--muted);">...</span>
-                    <?php endif; ?>
-                    <a href="<?= $baseUrl ?>/admin/empleados?<?= http_build_query(array_filter(['pagina' => $totalPaginas, 'q' => $busqueda ?? '', 'rol' => $filtroRol ?? ''])) ?>" 
-                       class="btn btn-sm btn-outline"><?= $totalPaginas ?></a>
+                    <span style="padding:6px 8px;color:var(--muted);">...</span>
                 <?php endif; ?>
             </div>
             

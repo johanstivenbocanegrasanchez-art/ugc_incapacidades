@@ -2,6 +2,7 @@
 use Core\Config;
 
 require_once __DIR__ . '/badge_estado.php';
+require_once __DIR__ . '/pagination.php';
 $baseUrl = Config::baseUrl();
 ?>
 <?php if (empty($filas)): ?>
@@ -9,6 +10,13 @@ $baseUrl = Config::baseUrl();
     <p>No hay solicitudes para mostrar.</p>
   </div>
 <?php else: ?>
+<?php
+$paginationName = $paginationName ?? 'pagina';
+$paginationPerPage = $paginationPerPage ?? 5;
+$paginationLabel = $paginationLabel ?? 'solicitudes';
+$pagination = ugcPaginateRows($filas, $paginationName, $paginationPerPage);
+$filasPaginadas = $pagination['rows'];
+?>
 <div class="ugc-table-wrap">
   <table class="ugc-table">
     <thead>
@@ -23,7 +31,7 @@ $baseUrl = Config::baseUrl();
       </tr>
     </thead>
     <tbody>
-    <?php foreach ($filas as $s): ?>
+    <?php foreach ($filasPaginadas as $s): ?>
       <tr>
         <td data-label="#"><?= $s['ID'] ?></td>
         <td data-label="Empleado"><?= htmlspecialchars($s['NIT_EMPLEADO']) ?></td>
@@ -39,4 +47,5 @@ $baseUrl = Config::baseUrl();
     </tbody>
   </table>
 </div>
+<?php ugcRenderPagination($pagination, $paginationLabel); ?>
 <?php endif; ?>

@@ -3,6 +3,7 @@ use Core\Config;
 use Core\Security;
 
 require_once __DIR__ . '/../shared/badge_estado.php';
+require_once __DIR__ . '/../shared/pagination.php';
 $baseUrl = Config::baseUrl();
 
 $aprobadas = count(array_filter($solicitudes, fn($s) => in_array($s['ESTADO'], ['APROBADO_JEFE', 'APROBADO_RRHH'])));
@@ -82,11 +83,15 @@ $rechazadas = count(array_filter($solicitudes, fn($s) => in_array($s['ESTADO'], 
     <p>Aún no tienes solicitudes.<br>Haz clic en <strong>Nueva solicitud</strong> para comenzar.</p>
   </div>
 <?php else: ?>
+<?php
+  $solicitudesPagination = ugcPaginateRows($solicitudes, 'pagina', 5);
+  $solicitudesPagina = $solicitudesPagination['rows'];
+?>
 <div class="ugc-table-wrap animate-fade-up">
   <table class="ugc-table">
     <thead><tr><th>#</th><th>Tipo</th><th>Inicio</th><th>Fin</th><th>Estado</th><th>Acciones</th></tr></thead>
     <tbody>
-    <?php foreach ($solicitudes as $s): ?>
+    <?php foreach ($solicitudesPagina as $s): ?>
     <tr>
       <td data-label="#"><?= $s['ID'] ?></td>
       <td data-label="Tipo"><?= htmlspecialchars($tipos[$s['TIPO_SOLICITUD']] ?? $s['TIPO_SOLICITUD']) ?> <?= !empty($s['RUTA_COMPROBANTE']) ? '<span class="icon-attachment" title="Tiene PDF adjunto"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg></span>' : '' ?></td>
@@ -108,4 +113,5 @@ $rechazadas = count(array_filter($solicitudes, fn($s) => in_array($s['ESTADO'], 
     </tbody>
   </table>
 </div>
+<?php ugcRenderPagination($solicitudesPagination, 'solicitudes'); ?>
 <?php endif; ?>

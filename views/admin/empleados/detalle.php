@@ -3,6 +3,7 @@
 use Core\Config;
 
 $baseUrl = Config::baseUrl();
+require_once __DIR__ . '/../../shared/pagination.php';
 
 // Helper para determinar rol visual
 // Verifica si es Super Admin o admin adicional además del nivel
@@ -355,6 +356,7 @@ if (!empty($empleado['NOMBRE_COMPLETO'])) {
             </table>
         </div>
     </div>
+    <?php ugcRenderPagination($historialPagination, 'solicitudes'); ?>
 <?php endif; ?>
 
 <!-- Estilos adicionales -->
