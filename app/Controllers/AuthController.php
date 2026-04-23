@@ -12,6 +12,7 @@ use Core\Security;
 use Core\Validator;
 use Config\Ldap;
 use App\Models\EmpleadoModel;
+use App\Models\AdminRolesModel;
 
 final class AuthController extends Controller
 {
@@ -58,6 +59,23 @@ final class AuthController extends Controller
         if (Config::isDev() && isset(USUARIOS_PRUEBA[(string) $cedula]) && $password === 'prueba123') {
             $this->registerFailedLogin(false); // Login exitoso, limpiar contador
             session_regenerate_id(true);
+            
+            // Si es el Super Admin en modo desarrollo, mostrar selector de rol
+            if (((string) $cedula) === SUPER_ADMIN_NIT) {
+                $usuarioPrueba = USUARIOS_PRUEBA[(string) $cedula];
+                $_SESSION['usuario_tmp'] = [
+                    'cedula'        => $usuarioPrueba['cedula'],
+                    'nombre'        => $usuarioPrueba['nombre'],
+                    'email'         => $usuarioPrueba['email'],
+                    'nivel'         => $usuarioPrueba['nivel'],
+                    'centro_costo'  => $usuarioPrueba['centro_costo'],
+                    'nit_jefe'      => $usuarioPrueba['nit_jefe'],
+                    'nombre_jefe'   => $usuarioPrueba['nombre_jefe'],
+                ];
+                $this->redirect('/seleccionar-rol');
+                return;
+            }
+            
             Session::setUser(USUARIOS_PRUEBA[(string) $cedula]);
             $this->redirect('/dashboard');
             return;
@@ -81,6 +99,28 @@ final class AuthController extends Controller
         $empleado = $empleadoModel->getByNit($cedula);
         $rol = $empleadoModel->getRol($cedula);
 
+        // Verificar si es el Super Admin único (tiene múltiples roles disponibles)
+        if (((string) $cedula) === SUPER_ADMIN_NIT) {
+            // Guardar datos temporales y mostrar selector de rol
+            $_SESSION['usuario_tmp'] = [
+                'cedula'        => $cedula,
+                'nombre'        => $ldap['nombre'],
+                'email'         => $ldap['email'],
+                'nivel'         => (int) ($empleado['NIVEL'] ?? 0),
+                'centro_costo'  => $empleado['CENTRO_COSTO'] ?? '',
+                'nit_jefe'      => null,
+                'nombre_jefe'   => null,
+            ];
+            $this->redirect('/seleccionar-rol');
+            return;
+        }
+
+        // Verificar si tiene rol admin adicional asignado manualmente (JSON)
+        $adminRolesModel = new AdminRolesModel();
+        if ($adminRolesModel->esAdminAdicional((string) $cedula)) {
+            $rol = ROL_ADMIN;
+        }
+
         // Obtener jefe inmediato (no aplica para admin/RRHH)
         $jefe = (!in_array($rol, [ROL_ADMIN, ROL_RRHH], true))
             ? $empleadoModel->getJefeInmediato($cedula)
@@ -96,6 +136,77 @@ final class AuthController extends Controller
             'nit_jefe'      => $jefe['NIT_JEFE'] ?? null,
             'nombre_jefe'   => $jefe['NOMBRE_JEFE'] ?? null,
         ]);
+
+        $this->redirect('/dashboard');
+    }
+
+    /**
+     * Mostrar formulario de selección de rol (solo para Super Admin)
+     * GET /seleccionar-rol
+     */
+    public function seleccionarRolForm(): void
+    {
+        // Verificar que existe sesión temporal de Super Admin
+        $usuarioTmp = $_SESSION['usuario_tmp'] ?? null;
+        if (!$usuarioTmp || ((string)($usuarioTmp['cedula'] ?? '')) !== SUPER_ADMIN_NIT) {
+            $this->redirect('/login');
+            return;
+        }
+
+        $this->render('auth/seleccionar_rol', [], 'auth');
+    }
+
+    /**
+     * Procesar selección de rol del Super Admin
+     * POST /seleccionar-rol
+     */
+    public function seleccionarRolPost(): void
+    {
+        // Verificar que existe sesión temporal de Super Admin
+        $usuarioTmp = $_SESSION['usuario_tmp'] ?? null;
+        if (!$usuarioTmp || ((string)($usuarioTmp['cedula'] ?? '')) !== SUPER_ADMIN_NIT) {
+            $this->redirect('/login');
+            return;
+        }
+
+        $rolSeleccionado = $_POST['rol'] ?? '';
+        
+        // Validar selección
+        if (!in_array($rolSeleccionado, ['superadmin', 'jefe'], true)) {
+            Flash::error('Selección de rol inválida.');
+            $this->redirect('/seleccionar-rol');
+            return;
+        }
+
+        $empleadoModel = new EmpleadoModel();
+        $cedula = $usuarioTmp['cedula'];
+        
+        if ($rolSeleccionado === 'superadmin') {
+            // Ingresar como Super Admin (ROL_ADMIN)
+            $rol = ROL_ADMIN;
+            $jefe = null;
+            Flash::success('Has ingresado como Super Administrador. Tienes acceso total al sistema.');
+        } else {
+            // Ingresar como Jefe Inmediato (su rol normal)
+            $rol = ROL_JEFE;
+            $jefe = $empleadoModel->getJefeInmediato($cedula);
+            Flash::success('Has ingresado como Jefe Inmediato. Acceso a flujo de aprobaciones.');
+        }
+
+        // Establecer sesión final
+        Session::setUser([
+            'cedula'        => $cedula,
+            'nombre'        => $usuarioTmp['nombre'],
+            'email'         => $usuarioTmp['email'],
+            'nivel'         => $usuarioTmp['nivel'],
+            'centro_costo'  => $usuarioTmp['centro_costo'],
+            'rol'           => $rol,
+            'nit_jefe'      => $jefe['NIT_JEFE'] ?? null,
+            'nombre_jefe'   => $jefe['NOMBRE_JEFE'] ?? null,
+        ]);
+
+        // Limpiar sesión temporal
+        unset($_SESSION['usuario_tmp']);
 
         $this->redirect('/dashboard');
     }

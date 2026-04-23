@@ -35,6 +35,29 @@ $total = $stats['TOTAL'] ?? count($todas ?? []);
 
 </div>
 
+<!-- Menú de Administración -->
+<div class="admin-menu animate-fade-up" style="background:linear-gradient(135deg,#0a5a1f 0%,#128b3b 100%);border-radius:12px;padding:20px;margin-bottom:24px;color:white;">
+  <h3 style="margin:0 0 16px 0;font-size:16px;font-weight:600;display:flex;align-items:center;gap:8px;">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+      <path d="M2 17l10 5 10-5"/>
+      <path d="M2 12l10 5 10-5"/>
+    </svg>
+    Herramientas de Administración
+  </h3>
+  <div style="display:flex;gap:12px;flex-wrap:wrap;">
+    <a href="<?= $baseUrl ?>/admin/empleados" class="btn" style="background:rgba(255,255,255,0.2);color:white;border:1px solid rgba(255,255,255,0.3);backdrop-filter:blur(4px);">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:6px;">
+        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+        <circle cx="9" cy="7" r="4"/>
+        <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+        <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+      </svg>
+      Gestión de Empleados
+    </a>
+  </div>
+</div>
+
 <div class="stats-row animate-fade-up">
 <?php foreach ($labels as $key => $lbl): ?>
   <a href="<?= $baseUrl ?>/admin/solicitudes?estado=<?= urlencode($key) ?>" class="stat-card stat-card-link">

@@ -22,6 +22,11 @@ final class EmpleadoModel extends Model
 
     public function getRol(string $nit): string
     {
+        // Solo el Super Admin único tiene rol ADMIN por defecto
+        if ($nit === SUPER_ADMIN_NIT) {
+            return ROL_ADMIN;
+        }
+
         $emp = $this->getByNit($nit);
         if (!$emp) {
             return ROL_EMPLEADO;
@@ -30,9 +35,9 @@ final class EmpleadoModel extends Model
         $nivel = (int) ($emp['NIVEL'] ?? 0);
         $cc    = $emp['CENTRO_COSTO'] ?? '';
 
-        if ($nivel >= NIVEL_MIN_ADMIN) {
-            return ROL_ADMIN;
-        }
+        // Ya no se asigna ROL_ADMIN automáticamente por NIVEL >= 7
+        // Los admins adicionales se definen en admins_adicionales.json
+
         if (in_array($cc, CC_RRHH, true)) {
             return ROL_RRHH;
         }
@@ -45,19 +50,161 @@ final class EmpleadoModel extends Model
 
     public function getJefeInmediato(string $nit): ?array
     {
+        // Implementación basada en la consulta proporcionada por el jefe
+        // Sigue la estructura organizacional real de la UGC con mapeo de centros de costo
+        
+        // Depuración: registrar llamada al método
+        error_log("DEBUG: getJefeInmediato llamado para NIT: $nit");
+        
         $rows = $this->db->query(
-            "SELECT jf.NIT AS NIT_JEFE,
-                    TRIM(jf.NOMBRE||' '||jf.PRIMER_APELLIDO||' '||NVL(jf.SEGUNDO_APELLIDO,'')) AS NOMBRE_JEFE
-             FROM EMPLEADO emp
-             JOIN EMPLEADO jf ON jf.EMPRESA='BA2' AND jf.ESTADO='A'
-                 AND jf.CENTRO_COSTO=emp.CENTRO_COSTO AND jf.NIVEL > emp.NIVEL
-             WHERE emp.EMPRESA='BA2' AND emp.ESTADO='A' AND emp.NIT=:nit
-             ORDER BY jf.NIVEL ASC FETCH FIRST 1 ROWS ONLY",
+            "WITH emp_buscado AS (
+              -- Solo el empleado que estamos buscando
+              SELECT
+                e.ROWID AS rid_emp,
+                e.EMPRESA,
+                e.EMPLEADO,
+                e.NIT,
+                TRIM(
+                  e.NOMBRE || ' ' ||
+                  e.PRIMER_APELLIDO || ' ' ||
+                  NVL(e.SEGUNDO_APELLIDO, '')
+                ) AS NOMBRE_COMPLETO,
+                e.CENTRO_COSTO,
+                e.NIVEL,
+                e.ESTADO
+              FROM EMPLEADO e
+              WHERE e.EMPRESA = 'BA2'
+                AND e.ESTADO  = 'A'
+                AND e.NIT = :nit
+            ),
+            
+            base AS (
+              -- Todos los empleados activos para buscar jefes entre ellos
+              SELECT
+                e.ROWID AS rid_emp,
+                e.EMPRESA,
+                e.EMPLEADO,
+                e.NIT,
+                TRIM(
+                  e.NOMBRE || ' ' ||
+                  e.PRIMER_APELLIDO || ' ' ||
+                  NVL(e.SEGUNDO_APELLIDO, '')
+                ) AS NOMBRE_COMPLETO,
+                e.CENTRO_COSTO,
+                e.NIVEL,
+                e.ESTADO
+              FROM EMPLEADO e
+              WHERE e.EMPRESA = 'BA2'
+                AND e.ESTADO  = 'A'
+            ),
+
+            cc_map AS (
+              SELECT DISTINCT
+                b.CENTRO_COSTO,
+                CASE
+                  -- =========================
+                  -- RECTORÍA (cabecera 1020001)
+                  -- =========================
+                  WHEN b.CENTRO_COSTO IN (
+                    '1020001','2101001','2201001','2231101','2231102','2242101','2242102',
+                    '2311101','2312201','2321101','2325801','2351003','2351005',
+                    '2411001','2411002','2411004','2412004','2415001','2415002',
+                    '2416001','2416002','5010001','5010002','2341001'
+                  ) THEN '1020001'
+
+                  -- =========================================
+                  -- VICERRECTORÍA DESARROLLO ACADÉMICO (2202001)
+                  -- =========================================
+                  WHEN b.CENTRO_COSTO IN (
+                    '2102001','2312101','2321201','2322000','2322801','2322802',
+                    '2323000','2324000','2325000','2325901','2326000','2331001','2343001','2351000'
+                  ) THEN '2202001'
+
+                  -- ==================================
+                  -- VICERRECTORÍA GESTIÓN FINANCIERA (2413001)
+                  -- ==================================
+                  WHEN b.CENTRO_COSTO IN (
+                    '2413001','2351001','2412001','2412003','2413002','2413003','2413004',
+                    '2414001','2414002','2414004'
+                  ) THEN '2413001'
+
+                  -- ==========================================
+                  -- VICERRECTORÍA INNOVACIÓN Y EMPRESARISMO (2341001)
+                  -- ==========================================
+                  WHEN b.CENTRO_COSTO IN (
+                    '2341001','2211101','2331003','2341002','2341003','2341007','2342001',
+                    '2351004','2414101','2414102','2414103','2414104','2414105'
+                  ) THEN '2341001'
+
+                  ELSE NULL
+                END AS CC_CABECERA
+              FROM emp_buscado b
+            ),
+
+            -- 1) Jefe dentro del mismo centro de costo (NIVEL máximo)
+            jefe_mismo_cc AS (
+              SELECT
+                b1.rid_emp,
+                b2.NIT,
+                b2.NOMBRE_COMPLETO,
+                b2.NIVEL,
+                ROW_NUMBER() OVER (
+                  PARTITION BY b1.rid_emp
+                  ORDER BY b2.NIVEL DESC
+                ) AS rn
+              FROM emp_buscado b1
+              JOIN base b2
+                ON b2.CENTRO_COSTO = b1.CENTRO_COSTO
+               AND b2.NIVEL > b1.NIVEL
+            ),
+
+            -- 2) Si no hay, jefe en el centro de costo cabecera del segmento (NIVEL máximo)
+            jefe_cabecera AS (
+              SELECT
+                b1.rid_emp,
+                b2.NIT,
+                b2.NOMBRE_COMPLETO,
+                b2.NIVEL,
+                ROW_NUMBER() OVER (
+                  PARTITION BY b1.rid_emp
+                  ORDER BY b2.NIVEL DESC
+                ) AS rn
+              FROM emp_buscado b1
+              JOIN cc_map m
+                ON m.CENTRO_COSTO = b1.CENTRO_COSTO
+              JOIN base b2
+                ON b2.CENTRO_COSTO = m.CC_CABECERA
+               AND b2.NIVEL > b1.NIVEL
+            )
+
+            SELECT
+              COALESCE(j1.NIT,             j2.NIT)             AS NIT_JEFE,
+              COALESCE(j1.NOMBRE_COMPLETO, j2.NOMBRE_COMPLETO) AS NOMBRE_JEFE,
+              COALESCE(j1.NIVEL,           j2.NIVEL)           AS NIVEL_JEFE,
+              CASE
+                WHEN j1.NIT IS NOT NULL THEN 'MISMO_CENTRO_COSTO'
+                WHEN j2.NIT IS NOT NULL THEN 'CABECERA_SEGMENTO'
+                ELSE 'SIN_JEFE'
+              END AS FUENTE_JEFE
+
+            FROM emp_buscado b
+            LEFT JOIN jefe_mismo_cc j1
+              ON j1.rid_emp = b.rid_emp
+             AND j1.rn = 1
+            LEFT JOIN jefe_cabecera j2
+              ON j2.rid_emp = b.rid_emp
+             AND j2.rn = 1",
             [':nit' => $nit]
         );
+        
+        // Depuración: registrar resultado de la consulta
+        error_log("DEBUG: Resultado de consulta para NIT $nit: " . print_r($rows, true));
 
         if (!empty($rows[0]) && !empty($rows[0]['NIT_JEFE'])) {
-            return $rows[0];
+            return [
+                'NIT_JEFE' => $rows[0]['NIT_JEFE'],
+                'NOMBRE_JEFE' => $rows[0]['NOMBRE_JEFE']
+            ];
         }
 
         return null;
@@ -121,5 +268,21 @@ final class EmpleadoModel extends Model
             return false;
         }
         return in_array($emp['CENTRO_COSTO'] ?? '', CC_RRHH, true);
+    }
+
+    /**
+     * Obtener todos los empleados activos (sin filtro de nivel)
+     * Usado para el panel de administración
+     */
+    public function getTodos(): array
+    {
+        return $this->db->query(
+            "SELECT NIT, TRIM(NOMBRE||' '||PRIMER_APELLIDO||' '||NVL(SEGUNDO_APELLIDO,'')) AS NOMBRE_COMPLETO,
+                    CENTRO_COSTO, NIVEL, ESTADO
+             FROM EMPLEADO
+             WHERE EMPRESA='BA2' AND ESTADO='A'
+             ORDER BY NOMBRE_COMPLETO",
+            []
+        ) ?: [];
     }
 }

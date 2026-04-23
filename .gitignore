@@ -46,5 +46,8 @@ desktop.ini
 # XAMPP/Apache
 .htpasswd
 
+# Scripts de integración MCP (contienen lógica de conexión)
+oracle_mcp.py
+
 #
 composer.json
