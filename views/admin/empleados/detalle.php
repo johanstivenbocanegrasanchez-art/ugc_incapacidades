@@ -3,6 +3,7 @@
 use Core\Config;
 
 $baseUrl = Config::baseUrl();
+require_once __DIR__ . '/../../shared/pagination.php';
 
 // Helper para determinar rol visual
 // Verifica si es Super Admin o admin adicional además del nivel
@@ -287,6 +288,10 @@ if (!empty($empleado['NOMBRE_COMPLETO'])) {
         <p>Este empleado no tiene solicitudes registradas.</p>
     </div>
 <?php else: ?>
+    <?php
+        $historialPagination = ugcPaginateRows($solicitudes, 'pag_historial', 9);
+        $solicitudesPaginadas = $historialPagination['rows'];
+    ?>
     <div class="table-container animate-fade-up">
         <table class="data-table">
             <thead>
@@ -300,7 +305,7 @@ if (!empty($empleado['NOMBRE_COMPLETO'])) {
                 </tr>
             </thead>
             <tbody>
-                <?php foreach ($solicitudes as $sol): ?>
+                <?php foreach ($solicitudesPaginadas as $sol): ?>
                     <tr>
                         <td><?= $sol['ID'] ?></td>
                         <td><?= htmlspecialchars(TIPOS_SOLICITUD[$sol['TIPO_SOLICITUD']] ?? $sol['TIPO_SOLICITUD']) ?></td>
@@ -315,6 +320,7 @@ if (!empty($empleado['NOMBRE_COMPLETO'])) {
             </tbody>
         </table>
     </div>
+    <?php ugcRenderPagination($historialPagination, 'solicitudes'); ?>
 <?php endif; ?>
 
 <!-- Estilos adicionales -->

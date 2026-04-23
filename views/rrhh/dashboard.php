@@ -2,6 +2,7 @@
 use Core\Config;
 
 require_once __DIR__ . '/../shared/badge_estado.php';
+require_once __DIR__ . '/../shared/pagination.php';
 $baseUrl = Config::baseUrl();
 ?>
 <div class="page-header animate-fade-down" style="display:flex;justify-content:space-between;align-items:center;">
@@ -54,11 +55,15 @@ $baseUrl = Config::baseUrl();
 <?php if (empty($pendientes)): ?>
   <div class="empty-state animate-fade-up"><p>No hay solicitudes pendientes de aprobacion por RRHH.</p></div>
 <?php else: ?>
+<?php
+  $pendientesPagination = ugcPaginateRows($pendientes, 'pag_pendientes', 5);
+  $pendientesPagina = $pendientesPagination['rows'];
+?>
 <div class="ugc-table-wrap animate-fade-up">
   <table class="ugc-table">
     <thead><tr><th>#</th><th>Empleado</th><th>Tipo</th><th>Inicio</th><th>Fin</th><th>Estado</th><th>Acciones</th></tr></thead>
     <tbody>
-    <?php foreach ($pendientes as $s): ?>
+    <?php foreach ($pendientesPagina as $s): ?>
     <tr>
       <td data-label="#"><?= $s['ID'] ?></td>
       <td data-label="Empleado"><?= htmlspecialchars($s['NIT_EMPLEADO']) ?></td>
@@ -72,7 +77,13 @@ $baseUrl = Config::baseUrl();
     </tbody>
   </table>
 </div>
+<?php ugcRenderPagination($pendientesPagination, 'pendientes'); ?>
 <?php endif; ?>
 
 <div class="section-header section-header--spaced"><h2>Historial completo</h2></div>
-<?php $filas = $todas; require __DIR__ . '/../shared/tabla_solicitudes.php'; ?>
+<?php
+  $filas = $todas;
+  $paginationName = 'pag_historial';
+  $paginationLabel = 'historial';
+  require __DIR__ . '/../shared/tabla_solicitudes.php';
+?>

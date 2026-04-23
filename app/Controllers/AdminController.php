@@ -28,7 +28,7 @@ final class AdminController extends Controller
         $centroCosto = Security::sanitizeString($_GET['cc'] ?? '');
         $filtroRol = Security::sanitizeString($_GET['rol'] ?? '');
         $pagina = max(1, (int) ($_GET['pagina'] ?? 1));
-        $porPagina = 30;
+        $porPagina = 9;
 
         $model = new EmpleadoModel();
         $adminRolesModel = new AdminRolesModel();
@@ -38,6 +38,18 @@ final class AdminController extends Controller
         
         // Lista de NITs con rol admin adicional
         $adminsAdicionales = $adminRolesModel->getAdminsAdicionales();
+
+        $totalAdmins = count(array_filter($todosEmpleados, function($e) use ($adminsAdicionales) {
+            $nit = (string)($e['NIT'] ?? '');
+            return $nit === SUPER_ADMIN_NIT || in_array($nit, $adminsAdicionales, true);
+        }));
+        $totalJefes = count(array_filter($todosEmpleados, function($e) use ($adminsAdicionales) {
+            $nit = (string)($e['NIT'] ?? '');
+            $nivel = (int)($e['NIVEL'] ?? 0);
+            $esAdmin = ($nit === SUPER_ADMIN_NIT) || in_array($nit, $adminsAdicionales, true);
+            return $nivel >= NIVEL_MIN_JEFE && !$esAdmin;
+        }));
+        $totalEmpleadosRegulares = count($todosEmpleados) - $totalAdmins - $totalJefes;
 
         // Aplicar filtro por rol
         if (!empty($filtroRol)) {
@@ -70,7 +82,8 @@ final class AdminController extends Controller
 
         // Paginación manual
         $total = count($todosEmpleados);
-        $totalPaginas = (int) ceil($total / $porPagina);
+        $totalPaginas = max(1, (int) ceil($total / $porPagina));
+        $pagina = min($pagina, $totalPaginas);
         $empleados = array_slice($todosEmpleados, ($pagina - 1) * $porPagina, $porPagina);
 
         // Verificar si el usuario actual es el Super Admin único
@@ -88,7 +101,10 @@ final class AdminController extends Controller
             'model',
             'adminsAdicionales',
             'esSuperAdmin',
-            'user'
+            'user',
+            'totalAdmins',
+            'totalJefes',
+            'totalEmpleadosRegulares'
         ));
     }
 

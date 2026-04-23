@@ -2,6 +2,7 @@
 use Core\Config;
 
 require_once __DIR__ . '/../shared/badge_estado.php';
+require_once __DIR__ . '/../shared/pagination.php';
 $baseUrl = Config::baseUrl();
 ?>
 <div class="page-header animate-fade-down">
@@ -56,6 +57,10 @@ $baseUrl = Config::baseUrl();
     <p>No hay solicitudes para mostrar en esta categoría.</p>
   </div>
 <?php else: ?>
+<?php
+  $solicitudesPagination = ugcPaginateRows($solicitudes, 'pagina', 5);
+  $solicitudesPagina = $solicitudesPagination['rows'];
+?>
 <div class="ugc-table-wrap animate-fade-up">
   <table class="ugc-table">
     <thead>
@@ -70,7 +75,7 @@ $baseUrl = Config::baseUrl();
       </tr>
     </thead>
     <tbody>
-    <?php foreach ($solicitudes as $s): ?>
+    <?php foreach ($solicitudesPagina as $s): ?>
       <tr>
         <td data-label="#"><?= $s['ID'] ?></td>
         <td data-label="Empleado"><?= htmlspecialchars($s['NIT_EMPLEADO'] ?? '') ?></td>
@@ -93,4 +98,5 @@ $baseUrl = Config::baseUrl();
     </tbody>
   </table>
 </div>
+<?php ugcRenderPagination($solicitudesPagination, 'solicitudes'); ?>
 <?php endif; ?>

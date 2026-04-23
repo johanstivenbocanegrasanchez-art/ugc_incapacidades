@@ -3,6 +3,7 @@ use Core\Config;
 use Core\Security;
 
 require_once __DIR__ . '/../shared/badge_estado.php';
+require_once __DIR__ . '/../shared/pagination.php';
 $baseUrl = Config::baseUrl();
 ?>
 <div class="page-header animate-fade-down" style="display:flex;justify-content:space-between;align-items:center;">
@@ -65,11 +66,15 @@ $baseUrl = Config::baseUrl();
 <?php if (empty($pendientes)): ?>
   <div class="empty-state animate-fade-up"><p>No tienes solicitudes pendientes de gestionar.</p></div>
 <?php else: ?>
+<?php
+  $pendientesPagination = ugcPaginateRows($pendientes, 'pag_pendientes', 5);
+  $pendientesPagina = $pendientesPagination['rows'];
+?>
 <div class="ugc-table-wrap animate-fade-up">
   <table class="ugc-table">
     <thead><tr><th>#</th><th>Empleado (NIT)</th><th>Tipo</th><th>Inicio</th><th>Fin</th><th>Estado</th><th>Acciones</th></tr></thead>
     <tbody>
-    <?php foreach ($pendientes as $s): ?>
+    <?php foreach ($pendientesPagina as $s): ?>
     <tr>
       <td data-label="#"><?= $s['ID'] ?></td>
       <td data-label="Empleado"><?= htmlspecialchars($s['NIT_EMPLEADO']) ?></td>
@@ -83,17 +88,22 @@ $baseUrl = Config::baseUrl();
     </tbody>
   </table>
 </div>
+<?php ugcRenderPagination($pendientesPagination, 'pendientes'); ?>
 <?php endif; ?>
 
 <div class="section-header section-header--spaced"><h2>Historial de solicitudes gestionadas</h2></div>
 <?php if (empty($gestionadas)): ?>
   <div class="empty-state"><p>Aún no has gestionado ninguna solicitud.</p></div>
 <?php else: ?>
+<?php
+  $gestionadasPagination = ugcPaginateRows($gestionadas, 'pag_gestionadas', 5);
+  $gestionadasPagina = $gestionadasPagination['rows'];
+?>
 <div class="ugc-table-wrap">
   <table class="ugc-table">
     <thead><tr><th>#</th><th>Empleado (NIT)</th><th>Tipo</th><th>Mi Decisión</th><th>Estado Final</th><th>Fecha Gestión</th><th>Acciones</th></tr></thead>
     <tbody>
-    <?php foreach ($gestionadas as $s): ?>
+    <?php foreach ($gestionadasPagina as $s): ?>
     <tr>
       <td data-label="#"><?= $s['ID'] ?></td>
       <td data-label="Empleado"><?= htmlspecialchars($s['NIT_EMPLEADO']) ?></td>
@@ -113,17 +123,22 @@ $baseUrl = Config::baseUrl();
     </tbody>
   </table>
 </div>
+<?php ugcRenderPagination($gestionadasPagination, 'historial'); ?>
 <?php endif; ?>
 
 <div class="section-header section-header--spaced"><h2>Mis solicitudes personales</h2></div>
 <?php if (empty($misSolicitudes)): ?>
   <div class="empty-state"><p>No tienes solicitudes propias.</p></div>
 <?php else: ?>
+<?php
+  $misSolicitudesPagination = ugcPaginateRows($misSolicitudes, 'pag_mis_solicitudes', 5);
+  $misSolicitudesPagina = $misSolicitudesPagination['rows'];
+?>
 <div class="ugc-table-wrap">
   <table class="ugc-table">
     <thead><tr><th>#</th><th>Tipo</th><th>Inicio</th><th>Fin</th><th>Estado</th><th>Acciones</th></tr></thead>
     <tbody>
-    <?php foreach ($misSolicitudes as $s): ?>
+    <?php foreach ($misSolicitudesPagina as $s): ?>
     <tr>
       <td data-label="#"><?= $s['ID'] ?></td>
       <td data-label="Tipo"><?= htmlspecialchars($tipos[$s['TIPO_SOLICITUD']] ?? $s['TIPO_SOLICITUD']) ?> <?= !empty($s['RUTA_COMPROBANTE']) ? '<span class="icon-attachment" title="Tiene PDF adjunto"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg></span>' : '' ?></td>
@@ -145,4 +160,5 @@ $baseUrl = Config::baseUrl();
     </tbody>
   </table>
 </div>
+<?php ugcRenderPagination($misSolicitudesPagination, 'mis solicitudes'); ?>
 <?php endif; ?>
