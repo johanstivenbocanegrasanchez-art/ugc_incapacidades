@@ -135,7 +135,7 @@ final class AdminController extends Controller
         }
 
         // Obtener historial de solicitudes
-        $solicitudes = $solicitudModel->getByEmpleado($nit);
+        $solicitudes = $solicitudModel->getByEmpleado($nit) ?: [];
         
         // Estadísticas
         $stats = [

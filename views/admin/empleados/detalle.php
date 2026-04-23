@@ -314,6 +314,10 @@ if (!empty($empleado['NOMBRE_COMPLETO'])) {
         <p style="margin:0;color:#64748b;font-size:14px;">Este empleado no tiene solicitudes de incapacidad en el sistema.</p>
     </div>
 <?php else: ?>
+    <?php
+        $historialPagination = ugcPaginateRows($solicitudes, 'pag_historial', 9);
+        $solicitudesPaginadas = $historialPagination['rows'];
+    ?>
     <div style="background:white;border-radius:16px;box-shadow:0 1px 3px rgba(0,0,0,0.1);overflow:hidden;border:1px solid #e5e7eb;">
         <div style="overflow-x:auto;">
             <table style="width:100%;border-collapse:collapse;">
@@ -328,7 +332,7 @@ if (!empty($empleado['NOMBRE_COMPLETO'])) {
                     </tr>
                 </thead>
                 <tbody>
-                    <?php foreach ($solicitudes as $sol): ?>
+                    <?php foreach ($solicitudesPaginadas as $sol): ?>
                         <tr style="border-bottom:1px solid #f1f5f9;transition:background 0.2s;" onmouseover="this.style.background='#f8fafc';" onmouseout="this.style.background='transparent';">
                             <td style="padding:14px 16px;font-size:14px;color:#374151;font-weight:500;">#<?= $sol['ID'] ?></td>
                             <td style="padding:14px 16px;font-size:14px;color:#374151;"><?= htmlspecialchars(TIPOS_SOLICITUD[$sol['TIPO_SOLICITUD']] ?? $sol['TIPO_SOLICITUD']) ?></td>

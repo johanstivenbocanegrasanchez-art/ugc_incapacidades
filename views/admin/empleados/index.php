@@ -124,15 +124,15 @@ function urlConFiltro(string $baseUrl, string $busqueda, string $rol): string {
     color: #4b5563;
     border: 1px solid rgba(107,114,128,0.16);
 }
-.stats-row a.stat-card.filtro-activo .num,
-.stats-row a.stat-card.filtro-activo .lbl,
-.stats-row a.stat-card.filtro-activo div {
-    color: #1f2937 !important;
-}
 .stats-row a.stat-card.filtro-activo.filtro-total .num,
 .stats-row a.stat-card.filtro-activo.filtro-total .lbl,
 .stats-row a.stat-card.filtro-activo.filtro-total div {
     color: #166534 !important;
+}
+.stats-row a.stat-card.filtro-activo.filtro-aprendiz .num,
+.stats-row a.stat-card.filtro-activo.filtro-aprendiz .lbl,
+.stats-row a.stat-card.filtro-activo.filtro-aprendiz div {
+    color: #047857 !important;
 }
 .stats-row a.stat-card.filtro-activo.filtro-admin .num,
 .stats-row a.stat-card.filtro-activo.filtro-admin .lbl,
@@ -166,6 +166,10 @@ function urlConFiltro(string $baseUrl, string $busqueda, string $rol): string {
     background: #dcfce7 !important;
     color: #166534 !important;
 }
+.stats-row a.stat-card.filtro-activo.filtro-aprendiz > div > div:last-child {
+    background: #a7f3d0 !important;
+    color: #065f46 !important;
+}
 .stats-row a.stat-card.filtro-activo.filtro-admin > div > div:last-child {
     background: #fef3c7 !important;
     color: #b45309 !important;
@@ -177,6 +181,19 @@ function urlConFiltro(string $baseUrl, string $busqueda, string $rol): string {
 .stats-row a.stat-card.filtro-activo.filtro-empleado > div > div:last-child {
     background: #e5e7eb !important;
     color: #4b5563 !important;
+}
+
+.stats-row a.stat-card.filtro-activo.filtro-aprendiz {
+    background: linear-gradient(135deg,#ecfdf5 0%,#ffffff 100%) !important;
+    border: 1px solid rgba(16,185,129,0.24) !important;
+    box-shadow: 0 8px 18px rgba(16,185,129,0.12) !important;
+}
+.stats-row a.stat-card.filtro-activo.filtro-aprendiz::before {
+    background: linear-gradient(90deg,#059669,#34d399) !important;
+}
+.stats-row a.stat-card.filtro-activo.filtro-aprendiz::after {
+    color: #047857;
+    border: 1px solid rgba(16,185,129,0.16);
 }
 </style>
 
@@ -350,20 +367,18 @@ function urlConFiltro(string $baseUrl, string $busqueda, string $rol): string {
     </a>
 
     <!-- Aprendices/Pasantes -->
+    <?php $esAprendizFiltro = in_array((string)($centroCosto ?? ''), CC_APRENDICES, true); ?>
     <a href="<?= $baseUrl ?>/admin/empleados?cc=2411004" 
-       class="stat-card <?= ($centroCosto ?? '') === '2411004' ? 'filtro-activo' : '' ?>"
-       style="background:<?= ($centroCosto ?? '') === '2411004' ? '#10b981' : '#d1fae5' ?>;border:<?= ($centroCosto ?? '') === '2411004' ? '2px solid #059669' : '1px solid #10b981' ?>;text-decoration:none !important;transition:all 0.2s;"
+       class="stat-card filtro-aprendiz <?= $esAprendizFiltro ? 'filtro-activo' : '' ?>"
+       style="background:#d1fae5;border:1px solid #10b981;text-decoration:none !important;transition:all 0.2s;"
        onmouseover="if(!this.classList.contains('filtro-activo')) { this.style.transform='translateY(-4px)'; this.style.boxShadow='0 8px 25px rgba(16,185,129,0.3)'; }"
        onmouseout="this.style.transform='';this.style.boxShadow='';">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;">
             <div>
-                <div style="font-size:32px;font-weight:700;color:<?= ($centroCosto ?? '') === '2411004' ? 'white' : '#065f46' ?>;"><?= $totalAprendices ?></div>
-                <div style="font-size:14px;color:<?= ($centroCosto ?? '') === '2411004' ? 'white' : '#047857' ?>;font-weight:<?= ($centroCosto ?? '') === '2411004' ? '600' : '400' ?>;">Aprendices/Pasantes</div>
-                <?php if (($centroCosto ?? '') === '2411004'): ?>
-                    <div style="font-size:11px;color:white;margin-top:4px;opacity:0.9;">(Filtrando)</div>
-                <?php endif; ?>
+                <div style="font-size:32px;font-weight:700;color:#065f46;"><?= $totalAprendices ?></div>
+                <div style="font-size:14px;color:#047857;font-weight:500;">Aprendices/Pasantes</div>
             </div>
-            <div style="width:40px;height:40px;background:<?= ($centroCosto ?? '') === '2411004' ? 'rgba(255,255,255,0.3)' : '#10b981' ?>;border-radius:10px;display:flex;align-items:center;justify-content:center;color:<?= ($centroCosto ?? '') === '2411004' ? '#065f46' : 'white' ?>;">
+            <div style="width:40px;height:40px;background:#10b981;border-radius:10px;display:flex;align-items:center;justify-content:center;color:white;">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M12 14l9-5-9-5-9 5 9 5z"/>
                     <path d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"/>

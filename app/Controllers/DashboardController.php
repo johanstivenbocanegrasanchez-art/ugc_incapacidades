@@ -50,7 +50,15 @@ final class DashboardController extends Controller
                     $todas      = array_values(array_filter($todas, fn($s) => $this->coincideBusqueda($s, $q)));
                 }
 
-                $this->render('rrhh/dashboard', compact('user', 'pendientes', 'todas', 'tipos', 'q'));
+                $stats = [
+                    'pendientes'   => count($pendientes),
+                    'aprobadas'    => count(array_filter($todas, fn($s) => ($s['ESTADO'] ?? '') === 'APROBADO_RRHH')),
+                    'rechazadas'   => count(array_filter($todas, fn($s) => ($s['ESTADO'] ?? '') === 'RECHAZADO_RRHH')),
+                    'historico'    => count($todas),
+                    'revisionJefe' => count(array_filter($todas, fn($s) => ($s['ESTADO'] ?? '') === 'PENDIENTE_JEFE')),
+                ];
+
+                $this->render('rrhh/dashboard', compact('user', 'pendientes', 'todas', 'tipos', 'q', 'stats'));
                 break;
 
             case ROL_JEFE:
@@ -66,6 +74,11 @@ final class DashboardController extends Controller
 
                 $stats = [
                     'pendientes'     => count($pendientes),
+                    'aprobadas'      => count(array_filter(
+                        $gestionadas,
+                        fn($s) => in_array(($s['ESTADO'] ?? ''), ['APROBADO_JEFE', 'APROBADO_RRHH', 'RECHAZADO_RRHH'], true)
+                    )),
+                    'rechazadas'     => count(array_filter($gestionadas, fn($s) => ($s['ESTADO'] ?? '') === 'RECHAZADO_JEFE')),
                     'misSolicitudes' => count($misSolicitudes),
                     'gestionadas'    => count($gestionadas),
                 ];
@@ -126,6 +139,14 @@ final class DashboardController extends Controller
         $pendientes     = $model->getPendientesJefe($user['cedula']);
         $misSolicitudes = $model->getByEmpleado($user['cedula']);
         $gestionadas    = $model->getGestionadasByJefe($user['cedula']);
+        $aprobadas      = array_values(array_filter(
+            $gestionadas,
+            fn($s) => in_array(($s['ESTADO'] ?? ''), ['APROBADO_JEFE', 'APROBADO_RRHH', 'RECHAZADO_RRHH'], true)
+        ));
+        $rechazadas     = array_values(array_filter(
+            $gestionadas,
+            fn($s) => ($s['ESTADO'] ?? '') === 'RECHAZADO_JEFE'
+        ));
 
         switch ($tipo) {
             case 'pendientes':
@@ -133,6 +154,20 @@ final class DashboardController extends Controller
                 $subtitulo = 'Consulta detallada de las solicitudes que están esperando tu gestión';
                 $nombreFiltro = 'Pendientes de aprobación';
                 $solicitudes = $pendientes;
+                break;
+
+            case 'aprobadas':
+                $titulo = 'Solicitudes aprobadas por jefe';
+                $subtitulo = 'Consulta detallada de las solicitudes que aprobaste como jefe inmediato';
+                $nombreFiltro = 'Aprobadas por jefe';
+                $solicitudes = $aprobadas;
+                break;
+
+            case 'rechazadas':
+                $titulo = 'Solicitudes rechazadas por jefe';
+                $subtitulo = 'Consulta detallada de las solicitudes que rechazaste como jefe inmediato';
+                $nombreFiltro = 'Rechazadas por jefe';
+                $solicitudes = $rechazadas;
                 break;
 
             case 'mis_solicitudes':
@@ -184,6 +219,14 @@ final class DashboardController extends Controller
             $todas,
             fn($s) => ($s['ESTADO'] ?? '') === 'PENDIENTE_JEFE'
         ));
+        $aprobadas = array_values(array_filter(
+            $todas,
+            fn($s) => ($s['ESTADO'] ?? '') === 'APROBADO_RRHH'
+        ));
+        $rechazadas = array_values(array_filter(
+            $todas,
+            fn($s) => ($s['ESTADO'] ?? '') === 'RECHAZADO_RRHH'
+        ));
 
         switch ($tipo) {
             case 'pendientes':
@@ -191,6 +234,20 @@ final class DashboardController extends Controller
                 $subtitulo = 'Solicitudes aprobadas por jefe que están pendientes de aprobación final';
                 $nombreFiltro = 'Pendientes RRHH';
                 $solicitudes = $pendientes;
+                break;
+
+            case 'aprobadas':
+                $titulo = 'Solicitudes aprobadas por Talento Humano';
+                $subtitulo = 'Consulta detallada de las solicitudes aprobadas en la revision final';
+                $nombreFiltro = 'Aprobadas RRHH';
+                $solicitudes = $aprobadas;
+                break;
+
+            case 'rechazadas':
+                $titulo = 'Solicitudes rechazadas por Talento Humano';
+                $subtitulo = 'Consulta detallada de las solicitudes rechazadas en la revision final';
+                $nombreFiltro = 'Rechazadas RRHH';
+                $solicitudes = $rechazadas;
                 break;
 
             case 'historico':
