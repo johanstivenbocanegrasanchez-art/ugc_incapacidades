@@ -67,10 +67,13 @@ final class NotificacionController extends Controller
     /**
      * Enviar respuesta JSON
      */
-    private function jsonResponse(array $data): void
-    {
-        header('Content-Type: application/json; charset=utf-8');
-        echo json_encode($data);
-        exit;
-    }
+   private function jsonResponse(array $data): void
+{
+    header('Content-Type: application/json; charset=utf-8');
+    header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+    header('Pragma: no-cache');
+    header('Expires: 0');
+    echo json_encode($data);
+    exit;
+}
 }

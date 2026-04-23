@@ -20,7 +20,6 @@ $cssUrl     = $baseUrl . '/public/css/ugc.css';
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="<?= $cssUrl ?>">
-
 </head>
 <body>
 <header class="ugc-header">
@@ -108,7 +107,6 @@ $cssUrl     = $baseUrl . '/public/css/ugc.css';
 </main>
 
 <?php
-// Determinar rol y rutas correctas según el usuario
 $userRol = $user['rol'] ?? '';
 $solicitudesUrl = match($userRol) {
     ROL_ADMIN => $baseUrl . '/admin/solicitudes',
@@ -139,12 +137,17 @@ $esAdminORrhh = in_array($userRol, [ROL_ADMIN, ROL_RRHH], true);
   </div>
 </footer>
 
+<audio id="notifSound" preload="auto">
+  <source src="<?= $baseUrl ?>/public/sounds/notificacion.mp3" type="audio/mpeg">
+</audio>
+
 <script>
-document.addEventListener('DOMContentLoaded',()=>{
+document.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('.ugc-table tbody tr').forEach((r,i)=>{
     r.style.cssText='opacity:0;transform:translateY(10px);transition:opacity .3s ease,transform .3s ease';
     setTimeout(()=>{r.style.opacity='1';r.style.transform='none';},50+i*40);
   });
+
   document.querySelectorAll('.stat-card').forEach((c,i)=>{
     c.style.cssText='opacity:0;transform:translateY(14px);transition:opacity .35s ease,transform .35s ease';
     setTimeout(()=>{c.style.opacity='1';c.style.transform='none';},80+i*70);
@@ -172,59 +175,51 @@ document.addEventListener('DOMContentLoaded',()=>{
     }, 3500);
   }
 
-  // ============================================
-  // SISTEMA DE NOTIFICACIONES CON CACHE LOCAL
-  // ============================================
   const notifBell = document.getElementById('notifBell');
   const notifDropdown = document.getElementById('notifDropdown');
   const notifBadge = document.getElementById('notifBadge');
   const notifList = document.getElementById('notifList');
   const markAllBtn = document.getElementById('markAllRead');
+  const notifSound = document.getElementById('notifSound');
   const baseUrl = '<?= $baseUrl ?>';
 
   let notificaciones = [];
   let dropdownOpen = false;
+  let sonidoHabilitado = false;
+  let primeraCargaCompleta = false;
 
-  // CACHE LOCAL - Claves de almacenamiento
   const CACHE_KEYS = {
     CONTADOR: 'ugc_notif_contador',
     NOTIFICACIONES: 'ugc_notif_lista',
     TIMESTAMP: 'ugc_notif_timestamp',
     USER_NIT: 'ugc_notif_user_nit'
   };
-  const CACHE_DURACION_MS = 5 * 60 * 1000; // 5 minutos
-
-  // Obtener NIT del usuario actual para aislar caché por usuario
+  const CACHE_DURACION_MS = 5 * 60 * 1000;
   const userNit = '<?= $user['cedula'] ?? '' ?>';
 
-  // Verificar si el caché pertenece al usuario actual
   function esCacheValido() {
     const cacheUserNit = localStorage.getItem(CACHE_KEYS.USER_NIT);
     return cacheUserNit === userNit;
   }
 
-  // Guardar en caché
   function guardarCache(contador, notifs) {
     try {
       localStorage.setItem(CACHE_KEYS.USER_NIT, userNit);
       localStorage.setItem(CACHE_KEYS.CONTADOR, String(contador));
       localStorage.setItem(CACHE_KEYS.NOTIFICACIONES, JSON.stringify(notifs || []));
       localStorage.setItem(CACHE_KEYS.TIMESTAMP, String(Date.now()));
-    } catch (e) {
-      // Silenciar errores de localStorage (modo privado, etc.)
-    }
+    } catch (e) {}
   }
 
-  // Cargar desde caché
   function cargarCache() {
     if (!esCacheValido()) return null;
     try {
-      const timestamp = parseInt(localStorage.getItem(CACHE_KEYS.TIMESTAMP) || '0');
+      const timestamp = parseInt(localStorage.getItem(CACHE_KEYS.TIMESTAMP) || '0', 10);
       const ahora = Date.now();
-      if (ahora - timestamp > CACHE_DURACION_MS) return null; // Cache expirado
+      if (ahora - timestamp > CACHE_DURACION_MS) return null;
 
       return {
-        contador: parseInt(localStorage.getItem(CACHE_KEYS.CONTADOR) || '0'),
+        contador: parseInt(localStorage.getItem(CACHE_KEYS.CONTADOR) || '0', 10),
         notificaciones: JSON.parse(localStorage.getItem(CACHE_KEYS.NOTIFICACIONES) || '[]'),
         timestamp: timestamp
       };
@@ -233,7 +228,6 @@ document.addEventListener('DOMContentLoaded',()=>{
     }
   }
 
-  // Mostrar contador en el badge
   function mostrarContador(count, animar = false) {
     if (!notifBadge) return;
     notifBadge.textContent = count > 99 ? '99+' : count;
@@ -245,14 +239,55 @@ document.addEventListener('DOMContentLoaded',()=>{
     }
   }
 
-  // Toggle dropdown
+  async function habilitarSonido() {
+    try {
+      if (!notifSound) return;
+      notifSound.pause();
+      notifSound.currentTime = 0;
+
+      const p = notifSound.play();
+      if (p !== undefined) {
+        await p;
+        notifSound.pause();
+        notifSound.currentTime = 0;
+      }
+
+      sonidoHabilitado = true;
+    } catch (e) {
+      console.error('No se pudo habilitar el sonido:', e);
+    }
+  }
+
+  async function reproducirSonidoNotificacion() {
+    if (!sonidoHabilitado || !notifSound) return;
+
+    try {
+      notifSound.pause();
+      notifSound.currentTime = 0;
+      const p = notifSound.play();
+      if (p !== undefined) {
+        await p;
+      }
+    } catch (e) {
+      console.error('No se pudo reproducir el sonido:', e);
+    }
+  }
+
+  // Intentar habilitar sonido apenas entra
+  setTimeout(() => {
+    habilitarSonido();
+  }, 300);
+
+  document.addEventListener('click', habilitarSonido, { once: true });
+  document.addEventListener('keydown', habilitarSonido, { once: true });
+
   if (notifBell) {
     notifBell.addEventListener('click', (e) => {
       e.stopPropagation();
       dropdownOpen = !dropdownOpen;
       notifDropdown.classList.toggle('active', dropdownOpen);
       if (dropdownOpen) {
-        cargarNotificaciones();
+        cargarNotificaciones(false);
       }
     });
   }
@@ -264,15 +299,11 @@ document.addEventListener('DOMContentLoaded',()=>{
     }
   });
 
-  // Cargar contador: primero desde caché (instantáneo), luego actualizar
   const cacheInicial = cargarCache();
   if (cacheInicial) {
     mostrarContador(cacheInicial.contador, false);
+    notificaciones = Array.isArray(cacheInicial.notificaciones) ? cacheInicial.notificaciones : [];
   }
-  // Actualizar desde servidor en segundo plano
-  actualizarContador(true);
-  // Refrescar cada 60 segundos
-  setInterval(() => actualizarContador(false), 60000);
 
   if (markAllBtn) {
     markAllBtn.addEventListener('click', async () => {
@@ -285,7 +316,6 @@ document.addEventListener('DOMContentLoaded',()=>{
       markAllBtn.disabled = true;
       markAllBtn.textContent = 'Procesando...';
 
-      // Actualizar caché local inmediatamente (UX más rápida)
       guardarCache(0, []);
       mostrarContador(0, false);
       notificaciones = [];
@@ -302,9 +332,7 @@ document.addEventListener('DOMContentLoaded',()=>{
         });
         const data = await response.json();
         if (data.success) {
-          // Confirmar estado desde servidor
-          actualizarContador(false);
-          cargarNotificaciones();
+          await cargarNotificaciones(false);
           mostrarToast('Todas las notificaciones marcadas como leídas', 'success');
         } else {
           mostrarToast(data.error || 'Error al marcar notificaciones', 'error');
@@ -319,50 +347,48 @@ document.addEventListener('DOMContentLoaded',()=>{
     });
   }
 
-  // Función para actualizar el contador
-  async function actualizarContador(animar = false) {
+  async function cargarNotificaciones(reproducirSonido = true) {
+    const idsAntes = Array.isArray(notificaciones) ? notificaciones.map(n => String(n.ID)) : [];
+
     try {
-      const response = await fetch(`${baseUrl}/api/notificaciones/contador`);
+      const response = await fetch(`${baseUrl}/api/notificaciones?_t=${Date.now()}`, {
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        }
+      });
+
       const data = await response.json();
-      const count = data.contador || 0;
+      const nuevasNotifs = Array.isArray(data.notificaciones) ? data.notificaciones : [];
+      const idsDespues = nuevasNotifs.map(n => String(n.ID));
 
-      mostrarContador(count, animar);
-
-      // Guardar en caché
-      const cacheActual = cargarCache();
-      guardarCache(count, cacheActual?.notificaciones || []);
-    } catch (err) {
-      console.error('Error al cargar contador:', err);
-    }
-  }
-
-  async function cargarNotificaciones() {
-    // Primero, mostrar desde caché si existe (carga instantánea)
-    const cache = cargarCache();
-    if (cache && cache.notificaciones && cache.notificaciones.length > 0) {
-      notificaciones = cache.notificaciones;
-      renderizarNotificaciones();
-    }
-
-    // Luego, actualizar desde servidor en segundo plano
-    try {
-      const response = await fetch(`${baseUrl}/api/notificaciones`);
-      const data = await response.json();
-      const nuevasNotifs = data.notificaciones || [];
-
-      // Solo re-renderizar si hay cambios
+      const hayNuevaNotificacion = idsDespues.some(id => !idsAntes.includes(id));
       const hayCambios = JSON.stringify(notificaciones) !== JSON.stringify(nuevasNotifs);
-      if (hayCambios || !cache) {
-        notificaciones = nuevasNotifs;
+
+      // Al entrar al sistema, si ya tiene notificaciones, sonar una vez
+      if (!primeraCargaCompleta && nuevasNotifs.length > 0) {
+        await reproducirSonidoNotificacion();
+      }
+
+      // Luego sonar cada vez que llegue una nueva
+      if (reproducirSonido && primeraCargaCompleta && hayNuevaNotificacion) {
+        await reproducirSonidoNotificacion();
+      }
+
+      notificaciones = nuevasNotifs;
+
+      if (hayCambios) {
         renderizarNotificaciones();
       }
 
-      // Actualizar caché
-      const contadorActual = parseInt(notifBadge?.getAttribute('data-count') || '0');
-      guardarCache(contadorActual, nuevasNotifs);
+      mostrarContador(nuevasNotifs.length, hayNuevaNotificacion);
+      guardarCache(nuevasNotifs.length, nuevasNotifs);
+      primeraCargaCompleta = true;
     } catch (err) {
       console.error('Error al cargar notificaciones:', err);
-      // Si no hay caché y falló la petición, mostrar estado vacío
+      const cache = cargarCache();
       if (!cache) {
         notificaciones = [];
         renderizarNotificaciones();
@@ -413,7 +439,6 @@ document.addEventListener('DOMContentLoaded',()=>{
       return;
     }
 
-    // Actualizar caché local inmediatamente (UX más rápida)
     const cache = cargarCache();
     if (cache && cache.notificaciones) {
       const notifsActualizadas = cache.notificaciones.filter(n => n.ID != id);
@@ -433,12 +458,7 @@ document.addEventListener('DOMContentLoaded',()=>{
       });
       const data = await response.json();
       if (data.success) {
-        // Actualizar desde servidor para sincronizar
-        actualizarContador(false);
-        // Recargar lista si el dropdown está abierto
-        if (dropdownOpen) {
-          cargarNotificaciones();
-        }
+        await cargarNotificaciones(false);
       }
     } catch (err) {
       console.error('Error al marcar como leída:', err);
@@ -538,6 +558,14 @@ document.addEventListener('DOMContentLoaded',()=>{
       setTimeout(() => toast.remove(), 300);
     }, 3000);
   }
+
+  // Carga inicial: si ya tiene notificaciones, suena una vez
+  cargarNotificaciones(true);
+
+  // Revisión automática cada 5 segundos
+  setInterval(() => {
+    cargarNotificaciones(true);
+  }, 5000);
 });
 </script>
 </body>
