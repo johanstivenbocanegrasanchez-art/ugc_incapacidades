@@ -16,7 +16,7 @@ $baseUrl = Config::baseUrl();
   </a>
 </div>
 
-<div class="stats-row animate-fade-up" style="grid-template-columns:repeat(3,1fr)">
+<div class="stats-row animate-fade-up" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr))">
   <a href="<?= $baseUrl ?>/rrhh/solicitudes?tipo=pendientes" class="stat-card stat-card-link">
     <div class="stat-icon">
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -24,8 +24,31 @@ $baseUrl = Config::baseUrl();
         <polyline points="22 4 12 14.01 9 11.01"/>
       </svg>
     </div>
-    <div class="num"><?= count($pendientes) ?></div>
+    <div class="num"><?= $stats['pendientes'] ?? count($pendientes) ?></div>
     <div class="lbl">Pendientes RRHH</div>
+  </a>
+
+  <a href="<?= $baseUrl ?>/rrhh/solicitudes?tipo=aprobadas" class="stat-card stat-card-link">
+    <div class="stat-icon">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+        <polyline points="22 4 12 14.01 9 11.01"/>
+      </svg>
+    </div>
+    <div class="num"><?= $stats['aprobadas'] ?? 0 ?></div>
+    <div class="lbl">Aprobadas RRHH</div>
+  </a>
+
+  <a href="<?= $baseUrl ?>/rrhh/solicitudes?tipo=rechazadas" class="stat-card stat-card-link">
+    <div class="stat-icon">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"/>
+        <line x1="15" y1="9" x2="9" y2="15"/>
+        <line x1="9" y1="9" x2="15" y2="15"/>
+      </svg>
+    </div>
+    <div class="num"><?= $stats['rechazadas'] ?? 0 ?></div>
+    <div class="lbl">Rechazadas RRHH</div>
   </a>
 
   <a href="<?= $baseUrl ?>/rrhh/solicitudes?tipo=historico" class="stat-card stat-card-link">
@@ -35,7 +58,7 @@ $baseUrl = Config::baseUrl();
         <polyline points="14 2 14 8 20 8"/>
       </svg>
     </div>
-    <div class="num"><?= count($todas) ?></div>
+    <div class="num"><?= $stats['historico'] ?? count($todas) ?></div>
     <div class="lbl">Total Histórico</div>
   </a>
 
@@ -46,7 +69,7 @@ $baseUrl = Config::baseUrl();
         <polyline points="12 6 12 12 16 14"/>
       </svg>
     </div>
-    <div class="num"><?= count(array_filter($todas, fn($s) => $s['ESTADO'] === 'PENDIENTE_JEFE')) ?></div>
+    <div class="num"><?= $stats['revisionJefe'] ?? count(array_filter($todas, fn($s) => $s['ESTADO'] === 'PENDIENTE_JEFE')) ?></div>
     <div class="lbl">En Revisión Jefe</div>
   </a>
 </div>
