@@ -24,10 +24,6 @@ $total = $stats['TOTAL'] ?? count($todas ?? []);
   </div>
 
   <div style="display:flex;gap:10px;">
-    <a href="<?= $baseUrl ?>/solicitud/crear" class="btn btn-green">
-      + Nueva solicitud
-    </a>
-
     <a href="<?= $baseUrl ?>/exportar/todas/excel" class="btn btn-green">
       Descargar reporte Excel
     </a>

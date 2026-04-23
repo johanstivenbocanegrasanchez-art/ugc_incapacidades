@@ -12,9 +12,10 @@ final class EmpleadoModel extends Model
     {
         $rows = $this->db->query(
             "SELECT NIT, TRIM(NOMBRE||' '||PRIMER_APELLIDO||' '||NVL(SEGUNDO_APELLIDO,'')) AS NOMBRE_COMPLETO,
-                    CENTRO_COSTO, NIVEL, ESTADO
+                    CENTRO_COSTO, NIVEL, ESTADO, FECHA_INGRESO
              FROM EMPLEADO
-             WHERE EMPRESA='BA2' AND ESTADO='A' AND NIT=:nit",
+             WHERE EMPRESA='BA2' AND ESTADO='A' AND NIT=:nit
+             ORDER BY FECHA_INGRESO DESC, EMPLEADO DESC",
             [':nit' => $nit]
         );
         return $rows[0] ?? null;

@@ -254,66 +254,106 @@ if (!empty($empleado['NOMBRE_COMPLETO'])) {
 </div>
 
 <!-- Estadísticas de Solicitudes -->
-<div class="section-header animate-fade-up" style="margin-top:24px;">
-    <h2>Estadísticas de Solicitudes</h2>
+<div class="section-header animate-fade-up" style="margin-top:32px;margin-bottom:16px;">
+    <h2 style="margin:0;display:flex;align-items:center;gap:10px;font-size:18px;color:#1f2937;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0a5a1f" stroke-width="2">
+            <path d="M3 3v18h18"/>
+            <path d="M18.7 8l-5.1 5.2-2.8-2.7L7 14.3"/>
+        </svg>
+        Estadísticas de Solicitudes
+    </h2>
 </div>
 
-<div class="stats-row animate-fade-up" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr));">
-    <div class="stat-card">
-        <div class="num" style="font-size:32px;color:#374151;"><?= $stats['total'] ?? 0 ?></div>
-        <div class="lbl">Total Solicitudes</div>
+<div class="stats-row animate-fade-up" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:16px;margin-bottom:24px;">
+    <div style="background:white;border-radius:12px;padding:20px;box-shadow:0 1px 3px rgba(0,0,0,0.1);border:1px solid #e5e7eb;position:relative;overflow:hidden;">
+        <div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#6b7280,#9ca3af);"></div>
+        <div style="font-size:32px;font-weight:800;color:#374151;line-height:1;"><?= $stats['total'] ?? 0 ?></div>
+        <div style="font-size:13px;color:#6b7280;margin-top:6px;font-weight:500;">Total Solicitudes</div>
     </div>
-    <div class="stat-card">
-        <div class="num" style="font-size:32px;color:#d97706;"><?= $stats['pendientes'] ?? 0 ?></div>
-        <div class="lbl">Pendientes</div>
+    <div style="background:white;border-radius:12px;padding:20px;box-shadow:0 1px 3px rgba(0,0,0,0.1);border:1px solid #e5e7eb;position:relative;overflow:hidden;">
+        <div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#d97706,#f59e0b);"></div>
+        <div style="font-size:32px;font-weight:800;color:#d97706;line-height:1;"><?= $stats['pendientes'] ?? 0 ?></div>
+        <div style="font-size:13px;color:#6b7280;margin-top:6px;font-weight:500;">Pendientes</div>
     </div>
-    <div class="stat-card">
-        <div class="num" style="font-size:32px;color:#059669;"><?= $stats['aprobadas'] ?? 0 ?></div>
-        <div class="lbl">Aprobadas</div>
+    <div style="background:white;border-radius:12px;padding:20px;box-shadow:0 1px 3px rgba(0,0,0,0.1);border:1px solid #e5e7eb;position:relative;overflow:hidden;">
+        <div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#059669,#10b981);"></div>
+        <div style="font-size:32px;font-weight:800;color:#059669;line-height:1;"><?= $stats['aprobadas'] ?? 0 ?></div>
+        <div style="font-size:13px;color:#6b7280;margin-top:6px;font-weight:500;">Aprobadas</div>
     </div>
-    <div class="stat-card">
-        <div class="num" style="font-size:32px;color:#dc2626;"><?= $stats['rechazadas'] ?? 0 ?></div>
-        <div class="lbl">Rechazadas</div>
+    <div style="background:white;border-radius:12px;padding:20px;box-shadow:0 1px 3px rgba(0,0,0,0.1);border:1px solid #e5e7eb;position:relative;overflow:hidden;">
+        <div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#dc2626,#ef4444);"></div>
+        <div style="font-size:32px;font-weight:800;color:#dc2626;line-height:1;"><?= $stats['rechazadas'] ?? 0 ?></div>
+        <div style="font-size:13px;color:#6b7280;margin-top:6px;font-weight:500;">Rechazadas</div>
     </div>
 </div>
 
 <!-- Historial de Solicitudes -->
-<div class="section-header animate-fade-up" style="margin-top:24px;">
-    <h2>Historial de Solicitudes</h2>
+<div class="section-header animate-fade-up" style="margin-top:32px;margin-bottom:16px;">
+    <h2 style="margin:0;display:flex;align-items:center;gap:10px;font-size:18px;color:#1f2937;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0a5a1f" stroke-width="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+            <line x1="16" y1="13" x2="8" y2="13"/>
+            <line x1="16" y1="17" x2="8" y2="17"/>
+            <polyline points="10 9 9 9 8 9"/>
+        </svg>
+        Historial de Solicitudes
+    </h2>
 </div>
 
 <?php if (empty($solicitudes)): ?>
-    <div class="empty-state animate-fade-up">
-        <p>Este empleado no tiene solicitudes registradas.</p>
+    <div style="background:#f8fafc;border-radius:16px;padding:48px 24px;text-align:center;border:2px dashed #e2e8f0;">
+        <div style="width:64px;height:64px;background:#e2e8f0;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                <polyline points="14 2 14 8 20 8"/>
+            </svg>
+        </div>
+        <h3 style="margin:0 0 8px 0;font-size:16px;color:#374151;">Sin solicitudes registradas</h3>
+        <p style="margin:0;color:#64748b;font-size:14px;">Este empleado no tiene solicitudes de incapacidad en el sistema.</p>
     </div>
 <?php else: ?>
-    <div class="table-container animate-fade-up">
-        <table class="data-table">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Tipo</th>
-                    <th>Fecha Inicio</th>
-                    <th>Fecha Fin</th>
-                    <th>Estado</th>
-                    <th>Fecha Creación</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php foreach ($solicitudes as $sol): ?>
-                    <tr>
-                        <td><?= $sol['ID'] ?></td>
-                        <td><?= htmlspecialchars(TIPOS_SOLICITUD[$sol['TIPO_SOLICITUD']] ?? $sol['TIPO_SOLICITUD']) ?></td>
-                        <td><?= date('d/m/Y', strtotime($sol['FECHA_INICIO'])) ?></td>
-                        <td><?= date('d/m/Y', strtotime($sol['FECHA_FIN'])) ?></td>
-                        <td>
-                            <?php badgeEstado($sol['ESTADO']); ?>
-                        </td>
-                        <td><?= date('d/m/Y H:i', strtotime($sol['FECHA_CREACION'])) ?></td>
+    <div style="background:white;border-radius:16px;box-shadow:0 1px 3px rgba(0,0,0,0.1);overflow:hidden;border:1px solid #e5e7eb;">
+        <div style="overflow-x:auto;">
+            <table style="width:100%;border-collapse:collapse;">
+                <thead>
+                    <tr style="background:linear-gradient(180deg,#0a5a1f,#0d7028);">
+                        <th style="padding:14px 16px;text-align:left;font-size:12px;font-weight:600;color:white;text-transform:uppercase;letter-spacing:0.5px;border:none;">ID</th>
+                        <th style="padding:14px 16px;text-align:left;font-size:12px;font-weight:600;color:white;text-transform:uppercase;letter-spacing:0.5px;border:none;">Tipo</th>
+                        <th style="padding:14px 16px;text-align:left;font-size:12px;font-weight:600;color:white;text-transform:uppercase;letter-spacing:0.5px;border:none;">Fecha Inicio</th>
+                        <th style="padding:14px 16px;text-align:left;font-size:12px;font-weight:600;color:white;text-transform:uppercase;letter-spacing:0.5px;border:none;">Fecha Fin</th>
+                        <th style="padding:14px 16px;text-align:left;font-size:12px;font-weight:600;color:white;text-transform:uppercase;letter-spacing:0.5px;border:none;">Estado</th>
+                        <th style="padding:14px 16px;text-align:left;font-size:12px;font-weight:600;color:white;text-transform:uppercase;letter-spacing:0.5px;border:none;">Fecha Creación</th>
                     </tr>
-                <?php endforeach; ?>
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                    <?php foreach ($solicitudes as $sol): ?>
+                        <tr style="border-bottom:1px solid #f1f5f9;transition:background 0.2s;" onmouseover="this.style.background='#f8fafc';" onmouseout="this.style.background='transparent';">
+                            <td style="padding:14px 16px;font-size:14px;color:#374151;font-weight:500;">#<?= $sol['ID'] ?></td>
+                            <td style="padding:14px 16px;font-size:14px;color:#374151;"><?= htmlspecialchars(TIPOS_SOLICITUD[$sol['TIPO_SOLICITUD']] ?? $sol['TIPO_SOLICITUD']) ?></td>
+                            <td style="padding:14px 16px;font-size:14px;color:#64748b;"><?= date('d/m/Y', strtotime($sol['FECHA_INICIO'])) ?></td>
+                            <td style="padding:14px 16px;font-size:14px;color:#64748b;"><?= date('d/m/Y', strtotime($sol['FECHA_FIN'])) ?></td>
+                            <td style="padding:14px 16px;">
+                                <?php 
+                                $estadoColors = [
+                                    'PENDIENTE_JEFE' => ['bg' => '#fef3c7', 'color' => '#92400e', 'label' => 'Pendiente Jefe'],
+                                    'APROBADO_JEFE' => ['bg' => '#dbeafe', 'color' => '#1e40af', 'label' => 'Aprobado Jefe'],
+                                    'RECHAZADO_JEFE' => ['bg' => '#fee2e2', 'color' => '#991b1b', 'label' => 'Rechazado Jefe'],
+                                    'APROBADO_RRHH' => ['bg' => '#d1fae5', 'color' => '#065f46', 'label' => 'Aprobado RRHH'],
+                                    'RECHAZADO_RRHH' => ['bg' => '#fee2e2', 'color' => '#991b1b', 'label' => 'Rechazado RRHH'],
+                                ];
+                                $estado = $estadoColors[$sol['ESTADO']] ?? ['bg' => '#f3f4f6', 'color' => '#374151', 'label' => $sol['ESTADO']];
+                                ?>
+                                <span style="display:inline-block;padding:6px 12px;border-radius:20px;font-size:12px;font-weight:600;background:<?= $estado['bg'] ?>;color:<?= $estado['color'] ?>;">
+                                    <?= $estado['label'] ?>
+                                </span>
+                            </td>
+                            <td style="padding:14px 16px;font-size:14px;color:#64748b;"><?= date('d/m/Y H:i', strtotime($sol['FECHA_CREACION'])) ?></td>
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        </div>
     </div>
 <?php endif; ?>
 
