@@ -1413,4 +1413,20 @@ body{background:var(--bg);color:var(--text);font-size:15px;min-height:100vh;font
       
     }
     
+/* ============================================
+   FIX: Tarjetas de empleados - sin subrayados
+   ============================================ */
+.stats-row a.stat-card,
+.stats-row a.stat-card:hover,
+.stats-row a.stat-card:visited,
+.stats-row a.stat-card:active,
+.stats-row a.stat-card *{
+  text-decoration: none !important;
+}
+
+.stats-row a.stat-card .num,
+.stats-row a.stat-card .lbl {
+  text-decoration: none !important;
+  border-bottom: none !important;
+}
     

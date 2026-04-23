@@ -15,8 +15,10 @@ if (Config::isDev()) {
     error_reporting(E_ALL);
     ini_set('display_errors', '1');
 } else {
-    error_reporting(0);
+    error_reporting(E_ALL); // Temporalmente habilitado para depuración
     ini_set('display_errors', '0');
+    ini_set('log_errors', '1');
+    ini_set('error_log', __DIR__ . '/../logs/debug.log');
 }
 
 // =============================================
@@ -34,6 +36,10 @@ define('CC_APRENDICES', ['2411001', '2411002', '2411004']);
 
 define('NIVEL_MIN_JEFE', 4);
 define('NIVEL_MIN_ADMIN', 7);
+
+// Super Admin ÚNICO - NIT de la persona que puede gestionar roles de admin
+// Solo esta persona puede asignar/quitar acceso de administrador a otros
+define('SUPER_ADMIN_NIT', '1085042421'); // ← Cambiar por el NIT real del Super Admin
 
 define('ESTADO_PENDIENTE_JEFE', 'PENDIENTE_JEFE');
 define('ESTADO_APROBADO_JEFE',  'APROBADO_JEFE');
@@ -60,4 +66,6 @@ define('USUARIOS_PRUEBA', [
     '33333333' => ['cedula' => '33333333', 'nombre' => 'Carlos Talento Humano (Prueba)', 'email' => 'rrhh@ugc.edu.co', 'rol' => ROL_RRHH, 'nivel' => 60, 'centro_costo' => '2413001', 'nit_jefe' => '44444444', 'nombre_jefe' => 'Ana Admin (Prueba)'],
     '44444444' => ['cedula' => '44444444', 'nombre' => 'Ana Administrador (Prueba)', 'email' => 'admin@ugc.edu.co', 'rol' => ROL_ADMIN, 'nivel' => 7, 'centro_costo' => '1020001', 'nit_jefe' => null, 'nombre_jefe' => null],
     '55555555' => ['cedula' => '55555555', 'nombre' => 'Pedro Aprendiz (Prueba)', 'email' => 'aprendiz@ugc.edu.co', 'rol' => ROL_EMPLEADO, 'nivel' => 10, 'centro_costo' => '2411001', 'nit_jefe' => null, 'nombre_jefe' => null],
+    // Super Admin (mismo NIT que producción) - tiene nivel de jefe para pruebas
+    SUPER_ADMIN_NIT => ['cedula' => SUPER_ADMIN_NIT, 'nombre' => 'Ingeniero Jefe / Super Admin', 'email' => 'superadmin@ugc.edu.co', 'rol' => ROL_JEFE, 'nivel' => 5, 'centro_costo' => '2312101', 'nit_jefe' => null, 'nombre_jefe' => null],
 ]);

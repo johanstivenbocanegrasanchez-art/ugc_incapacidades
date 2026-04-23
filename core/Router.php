@@ -8,6 +8,7 @@ use App\Controllers\AuthController;
 use App\Controllers\DashboardController;
 use App\Controllers\SolicitudController;
 use App\Controllers\NotificacionController;
+use App\Controllers\AdminController;
 use App\Exportar\Admin\ExportController;
 use App\Exportar\Jefe\ExportControllerJe;
 use App\Exportar\Rrhh\ExportControllerRrhh;
@@ -18,6 +19,7 @@ final class Router
         'GET' => [
             '/'                              => [AuthController::class, 'loginForm'],
             '/login'                         => [AuthController::class, 'loginForm'],
+            '/seleccionar-rol'               => [AuthController::class, 'seleccionarRolForm'],
             '/dashboard'                     => [DashboardController::class, 'index'],
             '/solicitud/crear'               => [SolicitudController::class, 'crearForm'],
             '/solicitudes'                   => [DashboardController::class, 'listar'],
@@ -30,10 +32,13 @@ final class Router
             '/exportar/todas/excel'          => [ExportController::class, 'todasExcel'],
             '/exportar/jefe/excel'           => [ExportControllerJe::class, 'todasExcelJefe'],
             '/exportar/rrhh/excel'           => [ExportControllerRrhh::class, 'todasExcelRrhh'],
+            // Rutas de Administración
+            '/admin/empleados'               => [AdminController::class, 'empleados'],
         ],
         'POST' => [
             '/login'                            => [AuthController::class, 'loginPost'],
             '/logout'                           => [AuthController::class, 'logout'],
+            '/seleccionar-rol'                  => [AuthController::class, 'seleccionarRolPost'],
             '/solicitud/crear'                  => [SolicitudController::class, 'crearPost'],
             '/api/notificaciones/leer-todas'    => [NotificacionController::class, 'marcarTodasLeidas'],
         ],
@@ -44,6 +49,8 @@ final class Router
             '#^/solicitud/(\d+)/ver$#'    => [SolicitudController::class, 'ver'],
             '#^/solicitud/(\d+)/editar$#' => [SolicitudController::class, 'editarForm'],
             '#^/archivo/(\d+)$#'          => [SolicitudController::class, 'servirArchivo'],
+            // Rutas con parámetros de Administración
+            '#^/admin/empleados/([^/]+)$#' => [AdminController::class, 'empleadoDetalle'],
         ],
         'POST' => [
             '#^/solicitud/(\d+)/editar$#'         => [SolicitudController::class, 'editarPost'],
@@ -51,6 +58,9 @@ final class Router
             '#^/solicitud/(\d+)/jefe$#'           => [SolicitudController::class, 'gestionJefePost'],
             '#^/solicitud/(\d+)/rrhh$#'           => [SolicitudController::class, 'gestionRrhhPost'],
             '#^/api/notificaciones/(\d+)/leer$#' => [NotificacionController::class, 'marcarLeida'],
+            // Gestión de roles admin
+            '#^/admin/empleados/([^/]+)/hacer-admin$#' => [AdminController::class, 'hacerAdmin'],
+            '#^/admin/empleados/([^/]+)/quitar-admin$#' => [AdminController::class, 'quitarAdmin'],
         ],
     ];
 

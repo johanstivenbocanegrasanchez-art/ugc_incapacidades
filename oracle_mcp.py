@@ -6,12 +6,33 @@ import os
 # Inicializamos el servidor MCP
 mcp = FastMCP("Oracle_ICEBERG_PRUEBA")
 
-# Credenciales desde variables de entorno (configurar en .env o sistema)
-DB_HOST = os.environ.get("ORACLE_HOST", "localhost")
-DB_PORT = os.environ.get("ORACLE_PORT", "1521")
-DB_USER = os.environ.get("ORACLE_USER", "")
-DB_PASSWORD = os.environ.get("ORACLE_PASS", "")
-DB_SERVICE = os.environ.get("ORACLE_SERVICE", "")
+def _load_env(filepath: str) -> dict:
+    """Carga un archivo .env estilo KEY=VALUE (sin librerías externas)."""
+    env = {}
+    if not os.path.exists(filepath):
+        return env
+    with open(filepath, "r", encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if not line or line.startswith("#") or "=" not in line:
+                continue
+            key, value = line.split("=", 1)
+            key = key.strip()
+            value = value.strip().strip('"').strip("'")
+            env[key] = value
+    return env
+
+# Buscar .env en el directorio del script (raíz del proyecto)
+_script_dir = os.path.dirname(os.path.abspath(__file__))
+_env_path = os.path.join(_script_dir, ".env")
+_env = _load_env(_env_path)
+
+# Fallback a variables de entorno del sistema si .env no existe
+DB_HOST = _env.get("ORACLE_HOST", os.environ.get("ORACLE_HOST", "localhost"))
+DB_PORT = _env.get("ORACLE_PORT", os.environ.get("ORACLE_PORT", "1521"))
+DB_USER = _env.get("ORACLE_USER", os.environ.get("ORACLE_USER", ""))
+DB_PASSWORD = _env.get("ORACLE_PASS", os.environ.get("ORACLE_PASS", ""))
+DB_SERVICE = _env.get("ORACLE_SERVICE", os.environ.get("ORACLE_SERVICE", ""))
 
 def get_connection():
     """Establece la conexión con la base de datos Oracle."""

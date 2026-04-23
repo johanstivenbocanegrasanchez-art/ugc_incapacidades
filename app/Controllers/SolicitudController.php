@@ -23,9 +23,24 @@ final class SolicitudController extends Controller
         $empleadoModel = new EmpleadoModel();
         $esAprendiz = $empleadoModel->esAprendiz($user['centro_costo'] ?? '');
 
+        // Si el usuario no tiene jefe asignado en sesión, intentar actualizarlo en tiempo real
         if (!$esAprendiz && empty($user['nit_jefe'])) {
-            $this->render('empleado/sin_jefe', compact('user'));
-            return;
+            $jefe = $empleadoModel->getJefeInmediato($user['cedula']);
+            
+            // Depuración: registrar qué devuelve getJefeInmediato
+            error_log("DEBUG: getJefeInmediato para {$user['cedula']} devuelve: " . print_r($jefe, true));
+            
+            if ($jefe && !empty($jefe['NIT_JEFE'])) {
+                // Actualizar la sesión con la información del jefe
+                $user['nit_jefe'] = $jefe['NIT_JEFE'];
+                $user['nombre_jefe'] = $jefe['NOMBRE_JEFE'];
+                \Core\Session::setUser($user);
+                error_log("DEBUG: Sesión actualizada con jefe: {$jefe['NIT_JEFE']} - {$jefe['NOMBRE_JEFE']}");
+            } else {
+                error_log("DEBUG: No se encontró jefe para {$user['cedula']}, mostrando vista sin_jefe");
+                $this->render('empleado/sin_jefe', compact('user'));
+                return;
+            }
         }
 
         $jefes = $esAprendiz ? $empleadoModel->getTodosLosJefes() : [];
