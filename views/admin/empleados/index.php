@@ -120,7 +120,11 @@ function urlConFiltro(string $baseUrl, string $busqueda, string $rol): string {
         $esAdmin = ($nit === SUPER_ADMIN_NIT) || in_array($nit, $adminsAdicionales ?? [], true);
         return $nivel >= NIVEL_MIN_JEFE && !$esAdmin;
     }));
-    $totalEmpleadosRegulares = count($todosLosEmpleados) - $totalAdmins - $totalJefes;
+    // Contar aprendices/pasantes por centro de costo
+    $totalAprendices = count(array_filter($todosLosEmpleados, function($e) {
+        return in_array($e['CENTRO_COSTO'] ?? '', CC_APRENDICES, true);
+    }));
+    $totalEmpleadosRegulares = count($todosLosEmpleados) - $totalAdmins - $totalJefes - $totalAprendices;
     ?>
 
     <!-- Administradores -->
@@ -190,17 +194,40 @@ function urlConFiltro(string $baseUrl, string $busqueda, string $rol): string {
             </div>
         </div>
     </a>
+
+    <!-- Aprendices/Pasantes -->
+    <a href="<?= $baseUrl ?>/admin/empleados?cc=2411004" 
+       class="stat-card <?= ($centroCosto ?? '') === '2411004' ? 'filtro-activo' : '' ?>"
+       style="background:<?= ($centroCosto ?? '') === '2411004' ? '#10b981' : '#d1fae5' ?>;border:<?= ($centroCosto ?? '') === '2411004' ? '2px solid #059669' : '1px solid #10b981' ?>;text-decoration:none !important;transition:all 0.2s;"
+       onmouseover="if(!this.classList.contains('filtro-activo')) { this.style.transform='translateY(-4px)'; this.style.boxShadow='0 8px 25px rgba(16,185,129,0.3)'; }"
+       onmouseout="this.style.transform='';this.style.boxShadow='';">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+            <div>
+                <div style="font-size:32px;font-weight:700;color:<?= ($centroCosto ?? '') === '2411004' ? 'white' : '#065f46' ?>;"><?= $totalAprendices ?></div>
+                <div style="font-size:14px;color:<?= ($centroCosto ?? '') === '2411004' ? 'white' : '#047857' ?>;font-weight:<?= ($centroCosto ?? '') === '2411004' ? '600' : '400' ?>;">Aprendices/Pasantes</div>
+                <?php if (($centroCosto ?? '') === '2411004'): ?>
+                    <div style="font-size:11px;color:white;margin-top:4px;opacity:0.9;">(Filtrando)</div>
+                <?php endif; ?>
+            </div>
+            <div style="width:40px;height:40px;background:<?= ($centroCosto ?? '') === '2411004' ? 'rgba(255,255,255,0.3)' : '#10b981' ?>;border-radius:10px;display:flex;align-items:center;justify-content:center;color:<?= ($centroCosto ?? '') === '2411004' ? '#065f46' : 'white' ?>;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 14l9-5-9-5-9 5 9 5z"/>
+                    <path d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"/>
+                </svg>
+            </div>
+        </div>
+    </a>
 </div>
 
 <!-- Búsqueda Mejorada -->
 <div class="search-section animate-fade-up" style="background:white;border-radius:16px;padding:24px;margin-bottom:24px;box-shadow:0 1px 3px rgba(0,0,0,0.1);">
-    <form method="get" action="<?= $baseUrl ?>/admin/empleados" style="display:flex;gap:12px;align-items:center;">
+    <form method="get" action="<?= $baseUrl ?>/admin/empleados" style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
         <!-- Input oculto para mantener filtro de rol -->
         <?php if (!empty($filtroRol)): ?>
             <input type="hidden" name="rol" value="<?= htmlspecialchars($filtroRol) ?>">
         <?php endif; ?>
         
-        <div style="flex:1;position:relative;">
+        <div style="flex:1;position:relative;min-width:250px;">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="position:absolute;left:16px;top:50%;transform:translateY(-50%);color:var(--muted);">
                 <circle cx="11" cy="11" r="8"/>
                 <path d="m21 21-4.35-4.35"/>
@@ -211,6 +238,30 @@ function urlConFiltro(string $baseUrl, string $busqueda, string $rol): string {
                    onfocus="this.style.borderColor='#0a5a1f';this.style.boxShadow='0 0 0 3px rgba(10,90,31,0.1)';"
                    onblur="this.style.borderColor='#e5e7eb';this.style.boxShadow='none';">
         </div>
+        
+        <!-- Filtro por Centro de Costo -->
+        <div style="position:relative;min-width:200px;">
+            <select name="cc" style="width:100%;padding:14px 16px;border:2px solid #e5e7eb;border-radius:12px;font-size:15px;background:white;cursor:pointer;transition:all 0.2s;appearance:none;padding-right:40px;"
+                    onfocus="this.style.borderColor='#0a5a1f';this.style.boxShadow='0 0 0 3px rgba(10,90,31,0.1)';"
+                    onblur="this.style.borderColor='#e5e7eb';this.style.boxShadow='none';">
+                <option value="">Todos los centros de costo</option>
+                <optgroup label="Aprendices/Pasantes">
+                    <option value="2411001" <?= ($centroCosto ?? '') === '2411001' ? 'selected' : '' ?>>2411001 - Aprendices</option>
+                    <option value="2411002" <?= ($centroCosto ?? '') === '2411002' ? 'selected' : '' ?>>2411002 - Prácticas Profesionales</option>
+                    <option value="2411004" <?= ($centroCosto ?? '') === '2411004' ? 'selected' : '' ?>>2411004 - Prácticas Tecnológicas</option>
+                </optgroup>
+                <optgroup label="Talento Humano">
+                    <option value="2413001" <?= ($centroCosto ?? '') === '2413001' ? 'selected' : '' ?>>2413001 - Nómina</option>
+                    <option value="2413002" <?= ($centroCosto ?? '') === '2413002' ? 'selected' : '' ?>>2413002 - Contratación</option>
+                    <option value="2413003" <?= ($centroCosto ?? '') === '2413003' ? 'selected' : '' ?>>2413003 - Bienestar</option>
+                    <option value="2413004" <?= ($centroCosto ?? '') === '2413004' ? 'selected' : '' ?>>2413004 - Desarrollo</option>
+                </optgroup>
+            </select>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="position:absolute;right:14px;top:50%;transform:translateY(-50%);color:var(--muted);pointer-events:none;">
+                <polyline points="6 9 12 15 18 9"/>
+            </svg>
+        </div>
+        
         <button type="submit" class="btn btn-green" style="padding:14px 24px;font-size:15px;display:flex;align-items:center;gap:8px;">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <circle cx="11" cy="11" r="8"/>
@@ -218,7 +269,7 @@ function urlConFiltro(string $baseUrl, string $busqueda, string $rol): string {
             </svg>
             Buscar
         </button>
-        <?php if (!empty($busqueda) || !empty($filtroRol)): ?>
+        <?php if (!empty($busqueda) || !empty($filtroRol) || !empty($centroCosto)): ?>
             <a href="<?= $baseUrl ?>/admin/empleados" class="btn btn-gray" style="padding:14px 20px;display:flex;align-items:center;gap:6px;">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <line x1="18" y1="6" x2="6" y2="18"/>
@@ -363,6 +414,19 @@ function urlConFiltro(string $baseUrl, string $busqueda, string $rol): string {
                             <span style="font-size:11px;padding:4px 10px;border-radius:20px;background:#dbeafe;color:#1e40af;">
                                 CC: <?= htmlspecialchars($emp['CENTRO_COSTO'] ?? 'N/A') ?>
                             </span>
+                            
+                            <?php 
+                            // Badge especial para Aprendices/Pasantes
+                            if (in_array($emp['CENTRO_COSTO'] ?? '', CC_APRENDICES, true)): 
+                            ?>
+                                <span style="font-size:11px;padding:4px 10px;border-radius:20px;background:#d1fae5;color:#065f46;border:1px solid #10b981;display:flex;align-items:center;gap:4px;">
+                                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M12 14l9-5-9-5-9 5 9 5z"/>
+                                        <path d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"/>
+                                    </svg>
+                                    Aprendiz/Pasante
+                                </span>
+                            <?php endif; ?>
                         </div>
                         
                     </div>

@@ -99,12 +99,16 @@ final class AuthController extends Controller
         $empleado = $empleadoModel->getByNit($cedula);
         $rol = $empleadoModel->getRol($cedula);
 
+        // Obtener nombre completo desde Oracle (prioridad) o usar el del LDAP como fallback
+        $nombreCompleto = $empleado['NOMBRE_COMPLETO'] ?? null;
+        $nombreFinal = $nombreCompleto && trim($nombreCompleto) !== '' ? $nombreCompleto : ($ldap['nombre'] ?? $cedula);
+
         // Verificar si es el Super Admin único (tiene múltiples roles disponibles)
         if (((string) $cedula) === SUPER_ADMIN_NIT) {
             // Guardar datos temporales y mostrar selector de rol
             $_SESSION['usuario_tmp'] = [
                 'cedula'        => $cedula,
-                'nombre'        => $ldap['nombre'],
+                'nombre'        => $nombreFinal,
                 'email'         => $ldap['email'],
                 'nivel'         => (int) ($empleado['NIVEL'] ?? 0),
                 'centro_costo'  => $empleado['CENTRO_COSTO'] ?? '',
@@ -128,7 +132,7 @@ final class AuthController extends Controller
 
         Session::setUser([
             'cedula'        => $cedula,
-            'nombre'        => $ldap['nombre'],
+            'nombre'        => $nombreFinal,
             'email'         => $ldap['email'],
             'nivel'         => (int) ($empleado['NIVEL'] ?? 0),
             'centro_costo'  => $empleado['CENTRO_COSTO'] ?? '',

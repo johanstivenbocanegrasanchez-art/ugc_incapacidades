@@ -60,6 +60,13 @@ final class AdminController extends Controller
             });
         }
 
+        // Aplicar filtro por centro de costo
+        if (!empty($centroCosto)) {
+            $todosEmpleados = array_filter($todosEmpleados, function ($emp) use ($centroCosto) {
+                return ($emp['CENTRO_COSTO'] ?? '') === $centroCosto;
+            });
+        }
+
         // Aplicar filtros de búsqueda
         if (!empty($busqueda)) {
             $todosEmpleados = array_filter($todosEmpleados, function ($emp) use ($busqueda) {

@@ -24,140 +24,252 @@ $nombre = $usuarioTmp['nombre'] ?? 'Usuario';
     <title>Seleccionar Rol - Sistema Incapacidades</title>
     <link rel="stylesheet" href="<?= $baseUrl ?>/public/css/ugc.css">
     <style>
+        :root {
+            --green: #0a5a1f;
+            --green2: #128b3b;
+            --green3: #e8f5ec;
+            --green4: #c8e6d0;
+            --text: #1c2b1e;
+            --muted: #5a6b5b;
+            --surface: rgba(255, 255, 255, 0.95);
+        }
+
         body {
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
-            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
             margin: 0;
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #1f6f33 url("<?= $baseUrl ?>/public/images/login-fondo.png") center center / cover no-repeat;
         }
+
         .rol-container {
-            background: white;
-            border-radius: 24px;
-            padding: 48px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.1);
-            max-width: 520px;
-            width: 90%;
+            width: 100%;
+            max-width: 480px;
+            background: var(--surface);
+            border-radius: 26px;
+            padding: 40px 36px 32px;
+            box-shadow:
+                0 20px 45px rgba(0, 0, 0, 0.18),
+                0 0 0 1px rgba(255, 255, 255, 0.2) inset;
             text-align: center;
+            position: relative;
         }
+
         .rol-header {
             margin-bottom: 32px;
         }
+
         .rol-avatar {
-            width: 80px;
-            height: 80px;
-            background: linear-gradient(135deg, #0a5a1f 0%, #128b3b 100%);
+            width: 90px;
+            height: 90px;
+            background: linear-gradient(135deg, var(--green) 0%, var(--green2) 100%);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             color: white;
-            font-size: 28px;
+            font-size: 32px;
             font-weight: 700;
             margin: 0 auto 20px;
+            box-shadow:
+                0 10px 30px rgba(10, 90, 31, 0.3),
+                0 0 0 4px rgba(255, 255, 255, 0.2);
         }
+
         .rol-header h1 {
             margin: 0 0 8px 0;
-            font-size: 24px;
-            color: #1f2937;
+            font-size: 26px;
+            font-weight: 800;
+            color: var(--green);
+            letter-spacing: -0.4px;
         }
+
         .rol-header p {
             margin: 0;
-            color: #6b7280;
-            font-size: 15px;
+            color: var(--muted);
+            font-size: 14px;
+            font-weight: 500;
         }
+
         .rol-options {
             display: flex;
             flex-direction: column;
-            gap: 16px;
-            margin-top: 32px;
+            gap: 14px;
+            margin-top: 28px;
         }
+
         .rol-card {
             display: flex;
             align-items: center;
             gap: 16px;
-            padding: 24px;
+            padding: 22px 20px;
             border-radius: 16px;
-            border: 2px solid #e5e7eb;
-            background: #f9fafb;
+            border: 2px solid #e8ece9;
+            background: #fbfcfb;
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: all 0.25s ease;
             text-align: left;
             text-decoration: none;
             color: inherit;
+            width: 100%;
         }
+
         .rol-card:hover {
-            border-color: #0a5a1f;
-            background: #f0fdf4;
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(10, 90, 31, 0.15);
+            border-color: var(--green);
+            background: linear-gradient(135deg, #f0fdf4 0%, #e8f5ec 100%);
+            transform: translateY(-3px);
+            box-shadow: 0 12px 28px rgba(10, 90, 31, 0.18);
         }
+
         .rol-card.superadmin:hover {
-            border-color: #f59e0b;
-            background: #fffbeb;
-            box-shadow: 0 8px 25px rgba(245, 158, 11, 0.15);
+            border-color: #d97706;
+            background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+            box-shadow: 0 12px 28px rgba(217, 119, 6, 0.2);
         }
+
         .rol-icon {
-            width: 56px;
-            height: 56px;
+            width: 54px;
+            height: 54px;
             border-radius: 14px;
             display: flex;
             align-items: center;
             justify-content: center;
             flex-shrink: 0;
+            transition: all 0.25s ease;
         }
+
         .rol-card.superadmin .rol-icon {
-            background: #fef3c7;
-            color: #b45309;
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            color: #92400e;
+            box-shadow: 0 4px 12px rgba(217, 119, 6, 0.2);
         }
+
         .rol-card.jefe .rol-icon {
-            background: #dbeafe;
-            color: #1e40af;
+            background: linear-gradient(135deg, var(--green3) 0%, var(--green4) 100%);
+            color: var(--green);
+            box-shadow: 0 4px 12px rgba(10, 90, 31, 0.15);
         }
+
         .rol-info h3 {
             margin: 0 0 4px 0;
             font-size: 17px;
-            color: #1f2937;
+            font-weight: 700;
+            color: var(--text);
         }
+
         .rol-info p {
             margin: 0;
             font-size: 13px;
-            color: #6b7280;
+            color: var(--muted);
+            font-weight: 500;
         }
+
         .rol-arrow {
             margin-left: auto;
             color: #9ca3af;
+            transition: all 0.25s ease;
         }
+
         .rol-card:hover .rol-arrow {
-            color: #0a5a1f;
+            color: var(--green);
+            transform: translateX(4px);
         }
+
         .rol-card.superadmin:hover .rol-arrow {
             color: #b45309;
         }
+
         .rol-badge {
             display: inline-block;
-            font-size: 11px;
+            font-size: 10px;
             padding: 4px 10px;
             border-radius: 20px;
             margin-top: 6px;
-            font-weight: 500;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
+
         .rol-card.superadmin .rol-badge {
             background: #fef3c7;
-            color: #b45309;
+            color: #92400e;
+            border: 1px solid #fde68a;
         }
+
         .rol-card.jefe .rol-badge {
-            background: #dbeafe;
-            color: #1e40af;
+            background: var(--green3);
+            color: var(--green);
+            border: 1px solid var(--green4);
         }
-        @media (max-width: 480px) {
+
+        .rol-footer {
+            margin-top: 24px;
+            font-size: 12px;
+            color: var(--muted);
+            font-weight: 500;
+        }
+
+        .rol-footer::before {
+            content: '';
+            display: block;
+            width: 40px;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--green4), transparent);
+            margin: 0 auto 16px;
+        }
+
+        /* Alert */
+        .alert {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 14px 16px;
+            border-radius: 14px;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .alert-error {
+            background: #fff2f0;
+            color: #c0392b;
+            border: 1px solid #f3c1bb;
+        }
+
+        .alert-success {
+            background: var(--green3);
+            color: var(--green);
+            border: 1px solid var(--green4);
+        }
+
+        @media (max-width: 640px) {
             .rol-container {
+                max-width: 100%;
                 padding: 32px 24px;
+                margin: 16px;
+                border-radius: 22px;
             }
+
+            .rol-avatar {
+                width: 80px;
+                height: 80px;
+                font-size: 28px;
+            }
+
+            .rol-header h1 {
+                font-size: 22px;
+            }
+
             .rol-card {
-                padding: 20px;
+                padding: 18px 16px;
+            }
+
+            .rol-icon {
+                width: 48px;
+                height: 48px;
             }
         }
     </style>
@@ -178,7 +290,17 @@ $nombre = $usuarioTmp['nombre'] ?? 'Usuario';
         </div>
 
         <?php if ($flash): ?>
-            <div class="alert alert-<?= $flash['type'] ?>" style="margin-bottom: 20px; text-align: left;">
+            <div class="alert alert-<?= $flash['type'] === 'error' ? 'error' : 'success' ?>">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <?php if ($flash['type'] === 'error'): ?>
+                        <circle cx="12" cy="12" r="10"/>
+                        <line x1="15" y1="9" x2="9" y2="15"/>
+                        <line x1="9" y1="9" x2="15" y2="15"/>
+                    <?php else: ?>
+                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                        <polyline points="22 4 12 14.01 9 11.01"/>
+                    <?php endif; ?>
+                </svg>
                 <?= htmlspecialchars($flash['message']) ?>
             </div>
         <?php endif; ?>
@@ -226,7 +348,7 @@ $nombre = $usuarioTmp['nombre'] ?? 'Usuario';
             </form>
         </div>
 
-        <p style="margin-top: 24px; font-size: 13px; color: #9ca3af;">
+        <p class="rol-footer">
             Puedes cambiar de rol cerrando sesión y volviendo a ingresar
         </p>
     </div>
