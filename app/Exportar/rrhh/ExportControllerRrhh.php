@@ -45,18 +45,37 @@ final class ExportControllerRrhh extends Controller
         $model = new SolicitudModel();
 
         $todas = $model->getAll();
-        $enRevisionJefe = array_values(array_filter(
-            $todas,
-            fn($s) => ($s['ESTADO'] ?? '') === 'PENDIENTE_JEFE'
-        ));
+
+        $pendientesRRHH = $model->getPendientesRRHH();
+
+        $aprobadasRRHH = $this->filtrarPorEstados($todas, [
+            'APROBADO_RRHH'
+        ]);
+
+        $rechazadasRRHH = $this->filtrarPorEstados($todas, [
+            'RECHAZADO_RRHH'
+        ]);
+
+        $enRevisionJefe = $this->filtrarPorEstados($todas, [
+            'PENDIENTE_JEFE'
+        ]);
 
         $data = [
-            'Pendientes RRHH'   => $model->getPendientesRRHH(),
-            'Histórico completo' => $todas,
-            'En revisión jefe'  => $enRevisionJefe,
+            'Pendientes RRHH'   => $pendientesRRHH,
+            'Aprobadas RRHH'    => $aprobadasRRHH,
+            'Rechazadas RRHH'   => $rechazadasRRHH,
+            'Total Histórico'   => $todas,
+            'En Revisión Jefe'  => $enRevisionJefe,
         ];
 
         $this->generarExcelPorHojas($data, 'reporte_rrhh');
+    }
+
+    private function filtrarPorEstados(array $rows, array $estados): array
+    {
+        return array_values(array_filter($rows, function ($row) use ($estados) {
+            return isset($row['ESTADO']) && in_array($row['ESTADO'], $estados, true);
+        }));
     }
 
     private function generarExcelPorHojas(array $data, string $nombreArchivo): void
@@ -87,6 +106,7 @@ final class ExportControllerRrhh extends Controller
     {
         foreach ($this->cabeceras as $i => $cabecera) {
             $col = chr(65 + $i);
+
             $sheet->setCellValue($col . '1', $cabecera);
             $sheet->getStyle($col . '1')->getFont()->setBold(true);
             $sheet->getColumnDimension($col)->setAutoSize(true);
