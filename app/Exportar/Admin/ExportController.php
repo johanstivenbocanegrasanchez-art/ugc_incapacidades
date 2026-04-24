@@ -1,14 +1,14 @@
 <?php
 declare(strict_types=1);
 
-namespace App\Exportar\Jefe;
+namespace App\Exportar\Admin;
 
 use Core\Controller;
 use App\Models\SolicitudModel;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
-final class ExportControllerJe extends Controller
+final class ExportController extends Controller
 {
     private array $cabeceras = [
         'ID',
@@ -38,36 +38,44 @@ final class ExportControllerJe extends Controller
         'FECHA_CREACION'
     ];
 
-    public function todasExcelJefe(): void
+    public function todasExcel(): void
     {
-        $this->requireRole([ROL_JEFE]);
+        $this->requireRole([ROL_ADMIN]);
 
-        $user = $this->user();
         $model = new SolicitudModel();
 
-        $cedulaJefe = $user['cedula'];
+        $todas = $model->getAll();
 
-        $pendientes   = $model->getPendientesJefe($cedulaJefe);
-        $misSolicitudes = $model->getByEmpleado($cedulaJefe);
-        $gestionadas  = $model->getGestionadasByJefe($cedulaJefe);
+        $pendienteJefe = $this->filtrarPorEstados($todas, [
+            'PENDIENTE_JEFE'
+        ]);
 
-        $aprobadas = $this->filtrarPorEstados($gestionadas, [
+        $aprobadoJefe = $this->filtrarPorEstados($todas, [
             'APROBADO_JEFE'
         ]);
 
-        $rechazadas = $this->filtrarPorEstados($gestionadas, [
+        $rechazadoJefe = $this->filtrarPorEstados($todas, [
             'RECHAZADO_JEFE'
         ]);
 
+        $aprobadoRRHH = $this->filtrarPorEstados($todas, [
+            'APROBADO_RRHH'
+        ]);
+
+        $rechazadoRRHH = $this->filtrarPorEstados($todas, [
+            'RECHAZADO_RRHH'
+        ]);
+
         $data = [
-            'Pendientes aprobacion' => $pendientes,
-            'Aprobadas por ti'      => $aprobadas,
-            'Rechazadas por ti'     => $rechazadas,
-            'Mis solicitudes'       => $misSolicitudes,
-            'Historial gestionado'  => $gestionadas,
+            'Pendiente Jefe'    => $pendienteJefe,
+            'Aprobado Jefe'     => $aprobadoJefe,
+            'Rechazado Jefe'    => $rechazadoJefe,
+            'Aprobado RRHH'     => $aprobadoRRHH,
+            'Rechazado RRHH'    => $rechazadoRRHH,
+            'Total Solicitudes' => $todas,
         ];
 
-        $this->generarExcelPorHojas($data, 'reporte_jefe');
+        $this->generarExcelPorHojas($data, 'reporte_admin');
     }
 
     private function filtrarPorEstados(array $rows, array $estados): array
