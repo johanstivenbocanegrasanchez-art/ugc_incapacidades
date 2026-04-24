@@ -13,10 +13,10 @@ final class SolicitudModel extends Model
         $fechaHora = date('Y-m-d H:i:s');
         return $this->db->execute(
             "INSERT INTO ICEBERG.SOLICITUDES_PERMISOS
-                (NIT_EMPLEADO, NIT_JEFE, TIPO_SOLICITUD, FECHA_SOLICITUD, FECHA_INICIO, FECHA_FIN,
+                (NIT_EMPLEADO, NIT_JEFE, TIPO_SOLICITUD, FECHA_INICIO, FECHA_FIN,
                  DURACION_HORAS, DURACION_DIAS, OBSERVACIONES, RUTA_COMPROBANTE, ESTADO, ACTIVO, FECHA_CREACION, FECHA_MODIFICACION)
              VALUES
-                (:nit_emp, :nit_jefe, :tipo, TO_DATE(:fecha_hora,'YYYY-MM-DD HH24:MI:SS'), TO_DATE(:f_ini,'YYYY-MM-DD'), TO_DATE(:f_fin,'YYYY-MM-DD'),
+                (:nit_emp, :nit_jefe, :tipo, TO_DATE(:f_ini,'YYYY-MM-DD'), TO_DATE(:f_fin,'YYYY-MM-DD'),
                  :horas, :dias, :obs, :ruta_comprobante, 'PENDIENTE_JEFE', 1, TO_DATE(:fecha_hora,'YYYY-MM-DD HH24:MI:SS'), TO_DATE(:fecha_hora,'YYYY-MM-DD HH24:MI:SS'))",
             [
                 ':nit_emp'          => $data['nit_empleado'],
