@@ -63,6 +63,8 @@ final class Oracle
             oci_bind_by_name($stmt, $key, $value);
         }
 
+        oci_set_prefetch($stmt, 200);
+
         if (!@oci_execute($stmt, OCI_DEFAULT)) {
             $error = oci_error($stmt);
             AppLogger::error('Oracle query error', ['message' => $error['message'] ?? 'Unknown', 'sql' => $sql]);
@@ -77,6 +79,12 @@ final class Oracle
         oci_free_statement($stmt);
 
         return $rows;
+    }
+
+    public function queryOne(string $sql, array $binds = []): ?array
+    {
+        $rows = $this->query($sql, $binds);
+        return $rows[0] ?? null;
     }
 
     public function execute(string $sql, array $binds = []): bool

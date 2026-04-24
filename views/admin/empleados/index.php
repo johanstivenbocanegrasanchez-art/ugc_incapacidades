@@ -96,34 +96,6 @@ function urlConFiltro(string $baseUrl, string $busqueda, string $rol): string {
 .stats-row a.stat-card.filtro-activo.filtro-empleado::before {
     background: linear-gradient(90deg,#6b7280,#cbd5e1) !important;
 }
-.stats-row a.stat-card.filtro-activo::after {
-    content: 'Vista actual';
-    position: absolute;
-    right: 18px;
-    bottom: 16px;
-    padding: 4px 9px;
-    border-radius: 999px;
-    background: rgba(255,255,255,0.92);
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 0;
-}
-.stats-row a.stat-card.filtro-activo.filtro-total::after {
-    color: #166534;
-    border: 1px solid rgba(21,128,61,0.16);
-}
-.stats-row a.stat-card.filtro-activo.filtro-admin::after {
-    color: #b45309;
-    border: 1px solid rgba(217,119,6,0.16);
-}
-.stats-row a.stat-card.filtro-activo.filtro-jefe::after {
-    color: #1d4ed8;
-    border: 1px solid rgba(37,99,235,0.16);
-}
-.stats-row a.stat-card.filtro-activo.filtro-empleado::after {
-    color: #4b5563;
-    border: 1px solid rgba(107,114,128,0.16);
-}
 .stats-row a.stat-card.filtro-activo.filtro-total .num,
 .stats-row a.stat-card.filtro-activo.filtro-total .lbl,
 .stats-row a.stat-card.filtro-activo.filtro-total div {
@@ -150,37 +122,53 @@ function urlConFiltro(string $baseUrl, string $busqueda, string $rol): string {
     color: #4b5563 !important;
 }
 .filtro-chip-activo {
-    display: none;
+    display: inline-flex;
     align-items: center;
     gap: 5px;
     margin-top: 8px;
     padding: 4px 9px;
     border-radius: 999px;
-    background: rgba(255,255,255,0.2);
-    border: 1px solid rgba(255,255,255,0.3);
-    color: #fff;
-    font-size: 11px;
+    background: rgba(255,255,255,0.92);
+    border: 1px solid rgba(15,23,42,0.10);
+    color: #0f172a;
+    font-size: 10px;
     font-weight: 700;
+    width: fit-content;
+    line-height: 1;
+    max-width: 100%;
+    white-space: nowrap;
 }
-.stats-row a.stat-card.filtro-activo.filtro-total > div > div:last-child {
-    background: #dcfce7 !important;
-    color: #166534 !important;
+.stats-row a.stat-card.filtro-activo.filtro-total .filtro-chip-activo {
+    color: #166534;
+    border-color: rgba(21,128,61,0.16);
 }
-.stats-row a.stat-card.filtro-activo.filtro-aprendiz > div > div:last-child {
-    background: #a7f3d0 !important;
-    color: #065f46 !important;
+.stats-row a.stat-card.filtro-activo.filtro-aprendiz .filtro-chip-activo {
+    color: #065f46;
+    border-color: rgba(16,185,129,0.16);
 }
-.stats-row a.stat-card.filtro-activo.filtro-admin > div > div:last-child {
-    background: #fef3c7 !important;
-    color: #b45309 !important;
+.stats-row a.stat-card.filtro-activo.filtro-admin .filtro-chip-activo {
+    color: #b45309;
+    border-color: rgba(217,119,6,0.16);
 }
-.stats-row a.stat-card.filtro-activo.filtro-jefe > div > div:last-child {
-    background: #dbeafe !important;
-    color: #1d4ed8 !important;
+.stats-row a.stat-card.filtro-activo.filtro-jefe .filtro-chip-activo {
+    color: #1d4ed8;
+    border-color: rgba(37,99,235,0.16);
 }
-.stats-row a.stat-card.filtro-activo.filtro-empleado > div > div:last-child {
-    background: #e5e7eb !important;
-    color: #4b5563 !important;
+.stats-row a.stat-card.filtro-activo.filtro-empleado .filtro-chip-activo {
+    color: #4b5563;
+    border-color: rgba(107,114,128,0.16);
+}
+
+@media (max-width: 480px) {
+    .filtro-chip-activo {
+        margin-top: 6px;
+        padding: 3px 8px;
+        font-size: 9px;
+    }
+    .filtro-chip-activo svg {
+        width: 10px;
+        height: 10px;
+    }
 }
 
 .stats-row a.stat-card.filtro-activo.filtro-aprendiz {
@@ -190,10 +178,6 @@ function urlConFiltro(string $baseUrl, string $busqueda, string $rol): string {
 }
 .stats-row a.stat-card.filtro-activo.filtro-aprendiz::before {
     background: linear-gradient(90deg,#059669,#34d399) !important;
-}
-.stats-row a.stat-card.filtro-activo.filtro-aprendiz::after {
-    color: #047857;
-    border: 1px solid rgba(16,185,129,0.16);
 }
 </style>
 
@@ -231,18 +215,22 @@ function urlConFiltro(string $baseUrl, string $busqueda, string $rol): string {
 
 <!-- Estadísticas Rápidas con Filtros -->
 <div class="stats-row animate-fade-up" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr));margin-bottom:24px;">
+    <?php
+    $esAprendizFiltro = in_array((string)($centroCosto ?? ''), CC_APRENDICES, true);
+    $esVistaGeneral = ($filtroRol === '') && empty($centroCosto);
+    ?>
     
     <!-- Total (limpia filtro) -->
     <a href="<?= urlConFiltro($baseUrl, $busqueda ?? '', '') ?>" 
-       class="stat-card filtro-total <?= $filtroRol === '' ? 'filtro-activo' : '' ?>" 
-       style="background:<?= $filtroRol === '' ? 'linear-gradient(135deg,#0a5a1f 0%,#128b3b 100%)' : '#f0fdf4' ?>;color:<?= $filtroRol === '' ? 'white' : '#166534' ?>;border:<?= $filtroRol === '' ? 'none' : '1px solid #86efac' ?>;text-decoration:none !important;transition:all 0.2s;"
+       class="stat-card filtro-total <?= $esVistaGeneral ? 'filtro-activo' : '' ?>" 
+       style="background:<?= $esVistaGeneral ? 'linear-gradient(135deg,#0a5a1f 0%,#128b3b 100%)' : '#f0fdf4' ?>;color:<?= $esVistaGeneral ? 'white' : '#166534' ?>;border:<?= $esVistaGeneral ? 'none' : '1px solid #86efac' ?>;text-decoration:none !important;transition:all 0.2s;"
        onmouseover="if(!this.classList.contains('filtro-activo')) { this.style.transform='translateY(-4px)'; this.style.boxShadow='0 8px 25px rgba(21,128,61,0.18)'; }"
        onmouseout="this.style.transform='';this.style.boxShadow='';">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;">
             <div>
-                <div style="font-size:32px;font-weight:700;color:<?= $filtroRol === '' ? 'white' : '#166534' ?>;"><?= $total ?? count($empleados) ?></div>
-                <div style="font-size:14px;color:<?= $filtroRol === '' ? 'white' : '#166534' ?>;opacity:<?= $filtroRol === '' ? '0.9' : '1' ?>;">Total Empleados</div>
-                <?php if ($filtroRol !== ''): ?>
+                <div style="font-size:32px;font-weight:700;color:<?= $esVistaGeneral ? 'white' : '#166534' ?>;"><?= $total ?? count($empleados) ?></div>
+                <div style="font-size:14px;color:<?= $esVistaGeneral ? 'white' : '#166534' ?>;opacity:<?= $esVistaGeneral ? '0.9' : '1' ?>;">Total Empleados</div>
+                <?php if (!$esVistaGeneral): ?>
                     <div style="font-size:11px;margin-top:4px;color:#15803d;opacity:0.85;">↻ Ver todos</div>
                 <?php else: ?>
                     <span class="filtro-chip-activo">
@@ -253,7 +241,7 @@ function urlConFiltro(string $baseUrl, string $busqueda, string $rol): string {
                     </span>
                 <?php endif; ?>
             </div>
-            <div style="width:40px;height:40px;background:<?= $filtroRol === '' ? 'rgba(255,255,255,0.2)' : '#166534' ?>;border-radius:10px;display:flex;align-items:center;justify-content:center;color:white;">
+            <div style="width:40px;height:40px;background:<?= $esVistaGeneral ? 'rgba(255,255,255,0.2)' : '#166534' ?>;border-radius:10px;display:flex;align-items:center;justify-content:center;color:white;">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
                     <circle cx="9" cy="7" r="4"/>
@@ -367,17 +355,24 @@ function urlConFiltro(string $baseUrl, string $busqueda, string $rol): string {
     </a>
 
     <!-- Aprendices/Pasantes -->
-    <?php $esAprendizFiltro = in_array((string)($centroCosto ?? ''), CC_APRENDICES, true); ?>
     <a href="<?= $baseUrl ?>/admin/empleados?cc=2411004" 
        class="stat-card filtro-aprendiz <?= $esAprendizFiltro ? 'filtro-activo' : '' ?>"
        style="background:#d1fae5;border:1px solid #10b981;text-decoration:none !important;transition:all 0.2s;"
        onmouseover="if(!this.classList.contains('filtro-activo')) { this.style.transform='translateY(-4px)'; this.style.boxShadow='0 8px 25px rgba(16,185,129,0.3)'; }"
        onmouseout="this.style.transform='';this.style.boxShadow='';">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;">
-            <div>
-                <div style="font-size:32px;font-weight:700;color:#065f46;"><?= $totalAprendices ?></div>
-                <div style="font-size:14px;color:#047857;font-weight:500;">Aprendices/Pasantes</div>
-            </div>
+             <div>
+                 <div style="font-size:32px;font-weight:700;color:#065f46;"><?= $totalAprendices ?></div>
+                 <div style="font-size:14px;color:#047857;font-weight:500;">Aprendices/Pasantes</div>
+                 <?php if ($esAprendizFiltro): ?>
+                     <span class="filtro-chip-activo">
+                         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                             <polyline points="20 6 9 17 4 12"/>
+                         </svg>
+                         Vista actual
+                     </span>
+                 <?php endif; ?>
+             </div>
             <div style="width:40px;height:40px;background:#10b981;border-radius:10px;display:flex;align-items:center;justify-content:center;color:white;">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M12 14l9-5-9-5-9 5 9 5z"/>

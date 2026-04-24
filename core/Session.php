@@ -19,6 +19,13 @@ final class Session
         }
     }
 
+    public static function close(): void
+    {
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            session_write_close();
+        }
+    }
+
     public static function setUser(array $user): void
     {
         $_SESSION['usuario'] = $user;

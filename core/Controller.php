@@ -8,11 +8,22 @@ abstract class Controller
 {
     protected function render(string $view, array $data = [], string $layout = 'main'): void
     {
+        if (!headers_sent()) {
+            header('Cache-Control: private, no-store, no-cache, must-revalidate, max-age=0');
+            header('Pragma: no-cache');
+            header('Expires: 0');
+        }
+
         extract($data);
+        $user = $user ?? Session::getUser();
 
         ob_start();
         require __DIR__ . '/../views/' . $view . '.php';
         $content = ob_get_clean();
+
+        $flash = $flash ?? Flash::get();
+        Security::generateCsrfToken();
+        Session::close();
 
         require __DIR__ . '/../views/layouts/' . $layout . '.php';
     }

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Controllers;
 
 use Core\Controller;
+use Core\Session;
 use Core\Security;
 use App\Services\NotificacionService;
 
@@ -24,7 +25,9 @@ final class NotificacionController extends Controller
     public function contador(): void
     {
         $this->requireLogin();
-        $this->jsonResponse(['contador' => $this->service->contarNoLeidas($this->user()['cedula'])]);
+        $cedula = $this->user()['cedula'];
+        Session::close();
+        $this->jsonResponse(['contador' => $this->service->contarNoLeidas($cedula)]);
     }
 
     /**
@@ -34,7 +37,9 @@ final class NotificacionController extends Controller
     public function listar(): void
     {
         $this->requireLogin();
-        $notificaciones = $this->service->getNoLeidas($this->user()['cedula']);
+        $cedula = $this->user()['cedula'];
+        Session::close();
+        $notificaciones = $this->service->getNoLeidas($cedula);
         $this->jsonResponse(['notificaciones' => $notificaciones]);
     }
 
@@ -47,7 +52,9 @@ final class NotificacionController extends Controller
         $this->requireLogin();
         $this->validateCsrf();
 
-        $ok = $this->service->marcarLeida((int) $id, $this->user()['cedula']);
+        $cedula = $this->user()['cedula'];
+        Session::close();
+        $ok = $this->service->marcarLeida((int) $id, $cedula);
         $this->jsonResponse(['success' => $ok]);
     }
 
@@ -60,7 +67,9 @@ final class NotificacionController extends Controller
         $this->requireLogin();
         $this->validateCsrf();
 
-        $ok = $this->service->marcarTodasLeidas($this->user()['cedula']);
+        $cedula = $this->user()['cedula'];
+        Session::close();
+        $ok = $this->service->marcarTodasLeidas($cedula);
         $this->jsonResponse(['success' => $ok]);
     }
 

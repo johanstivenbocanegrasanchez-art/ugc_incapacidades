@@ -61,9 +61,9 @@ final class Security
         // object-src permite blob: para visualización de PDFs en el navegador
         $csp = "default-src 'self' blob:; "
              . "script-src 'self' 'unsafe-inline'; "
-             . "style-src 'self' 'unsafe-inline'; "
+             . "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
              . "img-src 'self' data: blob:; "
-             . "font-src 'self'; "
+             . "font-src 'self' https://fonts.gstatic.com; "
              . "frame-src 'self' blob:; "
              . "frame-ancestors 'self'; "
              . "form-action 'self'; "

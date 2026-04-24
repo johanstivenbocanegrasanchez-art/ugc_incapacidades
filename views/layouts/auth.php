@@ -3,7 +3,8 @@ use Core\Config;
 use Core\Security;
 
 $baseUrl = Config::baseUrl();
-$cssUrl  = $baseUrl . '/public/css/ugc.css?v=' . date('Ymd');
+$cssUrl  = Config::assetUrl('public/css/ugc.css');
+$loginBg = Config::assetUrl('public/images/login-fondo.png');
 ?><!DOCTYPE html>
 <html lang="es">
 <head>
@@ -11,11 +12,13 @@ $cssUrl  = $baseUrl . '/public/css/ugc.css?v=' . date('Ymd');
   <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
   <title><?= htmlspecialchars(Config::appName()) ?> – Acceso</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="<?= $cssUrl ?>">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
+  <style>:root{--ugc-login-bg-image:url("<?= $loginBg ?>");}</style>
 </head>
 <body>
 <?= $content ?>
