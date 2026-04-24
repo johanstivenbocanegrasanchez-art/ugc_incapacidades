@@ -6,18 +6,24 @@ use Core\Security;
 use Config\Oracle;
 
 $user  = $user ?? Session::getUser();
-$flash = Flash::get();
+$flash = $flash ?? Flash::get();
 $rolesLabel = [ROL_ADMIN => 'Administrador', ROL_RRHH => 'Talento Humano', ROL_JEFE => 'Jefe Inmediato', ROL_EMPLEADO => 'Empleado'];
 $rolLabel   = $rolesLabel[$user['rol'] ?? ''] ?? 'Usuario';
 $baseUrl    = Config::baseUrl();
-$cssUrl     = $baseUrl . '/public/css/ugc.css';
+$cssUrl     = Config::assetUrl('public/css/ugc.css');
+$logoUrl    = Config::assetUrl('public/images/Logo ULGC.png');
+$soundUrl   = Config::assetUrl('public/sounds/notificacion.mp3');
 ?><!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
   <title><?= htmlspecialchars(Config::appName()) ?></title>
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
   <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="<?= $cssUrl ?>">
 </head>
@@ -29,7 +35,7 @@ $cssUrl     = $baseUrl . '/public/css/ugc.css';
 
   <div style="display:flex;align-items:center;gap:14px;flex:1;">
     <a href="<?= $baseUrl ?>/dashboard" class="logo-link" title="Ir al Inicio">
-      <img src="<?= $baseUrl ?>/public/images/Logo%20ULGC.png" alt="Universidad La Gran Colombia" class="header-logo" height="50">
+      <img src="<?= $logoUrl ?>" alt="Universidad La Gran Colombia" class="header-logo" height="50">
     </a>
 
     <div class="header-search">
@@ -138,7 +144,7 @@ $esAdminORrhh = in_array($userRol, [ROL_ADMIN, ROL_RRHH], true);
 </footer>
 
 <audio id="notifSound" preload="auto">
-  <source src="<?= $baseUrl ?>/public/sounds/notificacion.mp3" type="audio/mpeg">
+  <source src="<?= $soundUrl ?>" type="audio/mpeg">
 </audio>
 
 <script>
@@ -187,6 +193,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let dropdownOpen = false;
   let sonidoHabilitado = false;
   let primeraCargaCompleta = false;
+  let notifPollingTimer = null;
 
   const CACHE_KEYS = {
     CONTADOR: 'ugc_notif_contador',
@@ -195,7 +202,10 @@ document.addEventListener('DOMContentLoaded', () => {
     USER_NIT: 'ugc_notif_user_nit'
   };
   const CACHE_DURACION_MS = 5 * 60 * 1000;
+  const POLL_VISIBLE_MS = 20000;
+  const POLL_HIDDEN_MS = 60000;
   const userNit = '<?= $user['cedula'] ?? '' ?>';
+  let contadorActual = 0;
 
   function esCacheValido() {
     const cacheUserNit = localStorage.getItem(CACHE_KEYS.USER_NIT);
@@ -230,6 +240,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function mostrarContador(count, animar = false) {
     if (!notifBadge) return;
+    contadorActual = count;
     notifBadge.textContent = count > 99 ? '99+' : count;
     notifBadge.setAttribute('data-count', count);
 
@@ -287,6 +298,7 @@ document.addEventListener('DOMContentLoaded', () => {
       dropdownOpen = !dropdownOpen;
       notifDropdown.classList.toggle('active', dropdownOpen);
       if (dropdownOpen) {
+        renderizarNotificaciones();
         cargarNotificaciones(false);
       }
     });
@@ -303,6 +315,21 @@ document.addEventListener('DOMContentLoaded', () => {
   if (cacheInicial) {
     mostrarContador(cacheInicial.contador, false);
     notificaciones = Array.isArray(cacheInicial.notificaciones) ? cacheInicial.notificaciones : [];
+  }
+
+  function obtenerIntervaloPolling() {
+    return document.hidden ? POLL_HIDDEN_MS : POLL_VISIBLE_MS;
+  }
+
+  function programarPolling() {
+    if (notifPollingTimer) {
+      clearTimeout(notifPollingTimer);
+    }
+
+    notifPollingTimer = setTimeout(async () => {
+      await cargarContadorNotificaciones(true);
+      programarPolling();
+    }, obtenerIntervaloPolling());
   }
 
   if (markAllBtn) {
@@ -345,6 +372,46 @@ document.addEventListener('DOMContentLoaded', () => {
         markAllBtn.textContent = 'Marcar todo leído';
       }
     });
+  }
+
+  async function cargarContadorNotificaciones(reproducirSonido = true) {
+    try {
+      const response = await fetch(`${baseUrl}/api/notificaciones/contador?_t=${Date.now()}`, {
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        }
+      });
+
+      const data = await response.json();
+      const nuevoContador = Number.parseInt(data.contador ?? '0', 10) || 0;
+      const contadorPrevio = contadorActual;
+      const hayCambio = nuevoContador !== contadorPrevio;
+      const hayNuevaNotificacion = nuevoContador > contadorPrevio;
+
+      mostrarContador(nuevoContador, hayNuevaNotificacion);
+
+      if (!hayCambio) {
+        primeraCargaCompleta = true;
+        return;
+      }
+
+      if (nuevoContador === 0) {
+        notificaciones = [];
+        guardarCache(0, []);
+        if (dropdownOpen) {
+          renderizarNotificaciones();
+        }
+        primeraCargaCompleta = true;
+        return;
+      }
+
+      await cargarNotificaciones(reproducirSonido);
+    } catch (err) {
+      console.error('Error al cargar contador de notificaciones:', err);
+    }
   }
 
   async function cargarNotificaciones(reproducirSonido = true) {
@@ -559,13 +626,22 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 3000);
   }
 
-  // Carga inicial: si ya tiene notificaciones, suena una vez
-  cargarNotificaciones(true);
+  // Carga inicial y revisiones graduales
+  cargarContadorNotificaciones(true);
+  programarPolling();
 
-  // Revisión automática cada 5 segundos
-  setInterval(() => {
-    cargarNotificaciones(true);
-  }, 5000);
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) {
+      cargarContadorNotificaciones(false);
+    }
+    programarPolling();
+  });
+
+  window.addEventListener('beforeunload', () => {
+    if (notifPollingTimer) {
+      clearTimeout(notifPollingTimer);
+    }
+  });
 });
 </script>
 </body>

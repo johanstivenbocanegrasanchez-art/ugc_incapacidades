@@ -4,6 +4,8 @@ use Core\Config;
 use Core\Flash;
 
 $baseUrl = Config::baseUrl();
+$cssUrl = Config::assetUrl('public/css/ugc.css');
+$loginBg = Config::assetUrl('public/images/login-fondo.png');
 $flash = Flash::get();
 
 // Obtener datos temporales del usuario validado
@@ -22,7 +24,7 @@ $nombre = $usuarioTmp['nombre'] ?? 'Usuario';
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Seleccionar Rol - Sistema Incapacidades</title>
-    <link rel="stylesheet" href="<?= $baseUrl ?>/public/css/ugc.css">
+    <link rel="stylesheet" href="<?= $cssUrl ?>">
     <style>
         :root {
             --green: #0a5a1f;
@@ -41,7 +43,7 @@ $nombre = $usuarioTmp['nombre'] ?? 'Usuario';
             justify-content: center;
             margin: 0;
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: #1f6f33 url("<?= $baseUrl ?>/public/images/login-fondo.png") center center / cover no-repeat;
+            background: #1f6f33 url("<?= $loginBg ?>") center center / cover no-repeat;
         }
 
         .rol-container {

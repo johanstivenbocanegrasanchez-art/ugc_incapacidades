@@ -67,6 +67,19 @@ final class Config
         return rtrim(self::get('BASE_URL', '/'), '/');
     }
 
+    public static function assetUrl(string $path): string
+    {
+        $relativePath = '/' . ltrim(str_replace('\\', '/', $path), '/');
+        $absolutePath = dirname(__DIR__) . str_replace('/', DIRECTORY_SEPARATOR, $relativePath);
+        $assetUrl = self::baseUrl() . $relativePath;
+
+        if (!is_file($absolutePath)) {
+            return $assetUrl;
+        }
+
+        return $assetUrl . '?v=' . filemtime($absolutePath);
+    }
+
     public static function appName(): string
     {
         return self::get('APP_NAME', 'UGC');

@@ -28,16 +28,13 @@ final class SolicitudController extends Controller
             $jefe = $empleadoModel->getJefeInmediato($user['cedula']);
             
             // Depuración: registrar qué devuelve getJefeInmediato
-            error_log("DEBUG: getJefeInmediato para {$user['cedula']} devuelve: " . print_r($jefe, true));
             
             if ($jefe && !empty($jefe['NIT_JEFE'])) {
                 // Actualizar la sesión con la información del jefe
                 $user['nit_jefe'] = $jefe['NIT_JEFE'];
                 $user['nombre_jefe'] = $jefe['NOMBRE_JEFE'];
                 \Core\Session::setUser($user);
-                error_log("DEBUG: Sesión actualizada con jefe: {$jefe['NIT_JEFE']} - {$jefe['NOMBRE_JEFE']}");
             } else {
-                error_log("DEBUG: No se encontró jefe para {$user['cedula']}, mostrando vista sin_jefe");
                 $this->render('empleado/sin_jefe', compact('user'));
                 return;
             }
@@ -197,8 +194,6 @@ final class SolicitudController extends Controller
         $uploadDir  = $storageDir . '/solicitudes/';
 
         // Debug: verificar rutas
-        error_log("[PDF Debug] storageDir: {$storageDir}, uploadDir: {$uploadDir}");
-        error_log("[PDF Debug] __DIR__: " . __DIR__);
 
         if (!is_dir($storageDir)) {
             if (!mkdir($storageDir, 0755, true)) {
@@ -249,7 +244,6 @@ final class SolicitudController extends Controller
         $rutaDestino = $uploadDir . $nombreUnico;
 
         // Mover archivo
-        error_log("[PDF Debug] Intentando mover archivo: tmp={$archivo['tmp_name']} -> dest={$rutaDestino}");
         if (!move_uploaded_file($archivo['tmp_name'], $rutaDestino)) {
             $error = error_get_last();
             error_log("[PDF Debug] Error al mover archivo: " . ($error['message'] ?? 'Unknown error'));
@@ -258,7 +252,6 @@ final class SolicitudController extends Controller
             Flash::error('Error al guardar el archivo físico.');
             return false;
         }
-        error_log("[PDF Debug] Archivo movido exitosamente a: {$rutaDestino}");
 
         // Retornar ruta relativa para almacenar en BD
         return 'storage/solicitudes/' . $nombreUnico;
@@ -446,16 +439,13 @@ final class SolicitudController extends Controller
         $nombreArchivo = basename($solicitud['RUTA_COMPROBANTE']);
         $baseDir = dirname(__DIR__, 2);
 
-        error_log("[PDF Debug servirArchivo] ID={$id}, RutaBD={$solicitud['RUTA_COMPROBANTE']}, baseDir={$baseDir}");
 
         // Buscar en storage/ (ubicación actual)
         $rutaAbsoluta = $baseDir . '/storage/solicitudes/' . $nombreArchivo;
-        error_log("[PDF Debug servirArchivo] Intentando ruta1: {$rutaAbsoluta}, existe=" . (file_exists($rutaAbsoluta) ? 'SI' : 'NO'));
 
         // Si no existe, buscar en uploads/ (ubicación legacy)
         if (!file_exists($rutaAbsoluta)) {
             $rutaAbsoluta = $baseDir . '/uploads/solicitudes/' . $nombreArchivo;
-            error_log("[PDF Debug servirArchivo] Intentando ruta2: {$rutaAbsoluta}, existe=" . (file_exists($rutaAbsoluta) ? 'SI' : 'NO'));
         }
 
         if (!file_exists($rutaAbsoluta)) {
@@ -464,7 +454,6 @@ final class SolicitudController extends Controller
             exit('Archivo no encontrado físicamente.');
         }
 
-        error_log("[PDF Debug servirArchivo] Archivo encontrado: {$rutaAbsoluta}, tamaño=" . filesize($rutaAbsoluta));
 
         // Limpiar cualquier output buffering previo para evitar corrupción del PDF
         while (ob_get_level()) {
@@ -607,7 +596,6 @@ final class SolicitudController extends Controller
      */
     private function getUltimaSolicitudId(string $nitEmpleado): int
     {
-        $rows = (new SolicitudModel())->getByEmpleado($nitEmpleado);
-        return !empty($rows) ? (int) $rows[0]['ID'] : 0;
+        return (new SolicitudModel())->getUltimoIdByEmpleado($nitEmpleado);
     }
 }

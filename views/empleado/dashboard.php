@@ -6,9 +6,9 @@ require_once __DIR__ . '/../shared/badge_estado.php';
 require_once __DIR__ . '/../shared/pagination.php';
 $baseUrl = Config::baseUrl();
 
-$aprobadas = count(array_filter($solicitudes, fn($s) => in_array($s['ESTADO'], ['APROBADO_JEFE', 'APROBADO_RRHH'])));
-$pendientes = count(array_filter($solicitudes, fn($s) => $s['ESTADO'] === 'PENDIENTE_JEFE'));
-$rechazadas = count(array_filter($solicitudes, fn($s) => in_array($s['ESTADO'], ['RECHAZADO_JEFE', 'RECHAZADO_RRHH'])));
+$aprobadas = $stats['aprobadas'] ?? count(array_filter($solicitudes, fn($s) => in_array($s['ESTADO'], ['APROBADO_JEFE', 'APROBADO_RRHH'])));
+$pendientes = $stats['pendientes'] ?? count(array_filter($solicitudes, fn($s) => $s['ESTADO'] === 'PENDIENTE_JEFE'));
+$rechazadas = $stats['rechazadas'] ?? count(array_filter($solicitudes, fn($s) => in_array($s['ESTADO'], ['RECHAZADO_JEFE', 'RECHAZADO_RRHH'])));
 ?>
 
 <div class="page-header animate-fade-down" style="display:flex;justify-content:space-between;align-items:center;">
@@ -38,7 +38,7 @@ $rechazadas = count(array_filter($solicitudes, fn($s) => in_array($s['ESTADO'], 
         <polyline points="14 2 14 8 20 8"/>
       </svg>
     </div>
-    <div class="num"><?= count($solicitudes) ?></div>
+    <div class="num"><?= $stats['total'] ?? count($solicitudes) ?></div>
     <div class="lbl">Total</div>
   </a>
 

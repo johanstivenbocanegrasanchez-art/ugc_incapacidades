@@ -8,9 +8,20 @@ use Core\Model;
 
 final class EmpleadoModel extends Model
 {
+    private static array $byNitCache = [];
+    private static array $rolCache = [];
+    private static array $jefeCache = [];
+    private static ?array $todosLosJefesCache = null;
+    private static array $centrosCostoCache = [];
+    private static ?array $todosCache = null;
+
     public function getByNit(string $nit): ?array
     {
-        $rows = $this->db->query(
+        if (array_key_exists($nit, self::$byNitCache)) {
+            return self::$byNitCache[$nit];
+        }
+
+        $row = $this->db->queryOne(
             "SELECT NIT, TRIM(NOMBRE||' '||PRIMER_APELLIDO||' '||NVL(SEGUNDO_APELLIDO,'')) AS NOMBRE_COMPLETO,
                     CENTRO_COSTO, NIVEL, ESTADO, FECHA_INGRESO
              FROM EMPLEADO
@@ -18,19 +29,25 @@ final class EmpleadoModel extends Model
              ORDER BY FECHA_INGRESO DESC, EMPLEADO DESC",
             [':nit' => $nit]
         );
-        return $rows[0] ?? null;
+
+        self::$byNitCache[$nit] = $row;
+        return $row;
     }
 
     public function getRol(string $nit): string
     {
+        if (isset(self::$rolCache[$nit])) {
+            return self::$rolCache[$nit];
+        }
+
         // Solo el Super Admin único tiene rol ADMIN por defecto
         if ($nit === SUPER_ADMIN_NIT) {
-            return ROL_ADMIN;
+            return self::$rolCache[$nit] = ROL_ADMIN;
         }
 
         $emp = $this->getByNit($nit);
         if (!$emp) {
-            return ROL_EMPLEADO;
+            return self::$rolCache[$nit] = ROL_EMPLEADO;
         }
 
         $nivel = (int) ($emp['NIVEL'] ?? 0);
@@ -40,22 +57,24 @@ final class EmpleadoModel extends Model
         // Los admins adicionales se definen en admins_adicionales.json
 
         if (in_array($cc, CC_RRHH, true)) {
-            return ROL_RRHH;
+            return self::$rolCache[$nit] = ROL_RRHH;
         }
         if ($nivel >= NIVEL_MIN_JEFE) {
-            return ROL_JEFE;
+            return self::$rolCache[$nit] = ROL_JEFE;
         }
 
-        return ROL_EMPLEADO;
+        return self::$rolCache[$nit] = ROL_EMPLEADO;
     }
 
     public function getJefeInmediato(string $nit): ?array
     {
+        if (array_key_exists($nit, self::$jefeCache)) {
+            return self::$jefeCache[$nit];
+        }
+
         // Implementación basada en la consulta proporcionada por el jefe
         // Sigue la estructura organizacional real de la UGC con mapeo de centros de costo
         
-        // Depuración: registrar llamada al método
-        error_log("DEBUG: getJefeInmediato llamado para NIT: $nit");
         
         $rows = $this->db->query(
             "WITH emp_buscado AS (
@@ -198,16 +217,15 @@ final class EmpleadoModel extends Model
             [':nit' => $nit]
         );
         
-        // Depuración: registrar resultado de la consulta
-        error_log("DEBUG: Resultado de consulta para NIT $nit: " . print_r($rows, true));
 
         if (!empty($rows[0]) && !empty($rows[0]['NIT_JEFE'])) {
-            return [
+            return self::$jefeCache[$nit] = [
                 'NIT_JEFE' => $rows[0]['NIT_JEFE'],
                 'NOMBRE_JEFE' => $rows[0]['NOMBRE_JEFE']
             ];
         }
 
+        self::$jefeCache[$nit] = null;
         return null;
     }
 
@@ -218,7 +236,11 @@ final class EmpleadoModel extends Model
 
     public function getTodosLosJefes(): array
     {
-        return $this->db->query(
+        if (self::$todosLosJefesCache !== null) {
+            return self::$todosLosJefesCache;
+        }
+
+        self::$todosLosJefesCache = $this->db->query(
             "SELECT NIT, TRIM(NOMBRE||' '||PRIMER_APELLIDO||' '||NVL(SEGUNDO_APELLIDO,'')) AS NOMBRE_COMPLETO,
                     CENTRO_COSTO, NIVEL
              FROM EMPLEADO
@@ -226,6 +248,8 @@ final class EmpleadoModel extends Model
              ORDER BY NOMBRE_COMPLETO",
             [':nivel' => NIVEL_MIN_JEFE]
         ) ?: [];
+
+        return self::$todosLosJefesCache;
     }
 
     /**
@@ -235,6 +259,11 @@ final class EmpleadoModel extends Model
     {
         if (empty($centrosCosto)) {
             return [];
+        }
+
+        $cacheKey = implode('|', array_map('strval', $centrosCosto));
+        if (isset(self::$centrosCostoCache[$cacheKey])) {
+            return self::$centrosCostoCache[$cacheKey];
         }
 
         // Construir placeholders para IN clause
@@ -256,7 +285,8 @@ final class EmpleadoModel extends Model
 
         // Para OCI8, necesitamos pasar los parámetros de forma especial
         // Usamos el método query con el array de binds
-        return $this->db->query($sql, $params) ?: [];
+        self::$centrosCostoCache[$cacheKey] = $this->db->query($sql, $params) ?: [];
+        return self::$centrosCostoCache[$cacheKey];
     }
 
     /**
@@ -277,7 +307,11 @@ final class EmpleadoModel extends Model
      */
     public function getTodos(): array
     {
-        return $this->db->query(
+        if (self::$todosCache !== null) {
+            return self::$todosCache;
+        }
+
+        self::$todosCache = $this->db->query(
             "SELECT NIT, TRIM(NOMBRE||' '||PRIMER_APELLIDO||' '||NVL(SEGUNDO_APELLIDO,'')) AS NOMBRE_COMPLETO,
                     CENTRO_COSTO, NIVEL, ESTADO
              FROM EMPLEADO
@@ -285,5 +319,7 @@ final class EmpleadoModel extends Model
              ORDER BY NOMBRE_COMPLETO",
             []
         ) ?: [];
+
+        return self::$todosCache;
     }
 }

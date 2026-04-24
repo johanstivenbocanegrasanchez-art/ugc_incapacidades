@@ -3,6 +3,8 @@ use Core\Config;
 use Core\Security;
 
 $baseUrl = Config::baseUrl();
+$logoUrl = Config::assetUrl('public/images/Logo ULGC.png');
+$capibaraUrl = Config::assetUrl('public/images/capibara-login.png');
 ?>
 <div class="login-container">
   <div class="login-bg-pattern"></div>
@@ -10,8 +12,8 @@ $baseUrl = Config::baseUrl();
     <div class="login-brand">
    <div class="brand-icon">
   <div class="logo-capibara-wrap">
-    <img src="<?= $baseUrl ?>/public/images/Logo%20ULGC.png" alt="Universidad La Gran Colombia" class="login-logo">
-    <img src="<?= $baseUrl ?>/public/images/capibara-login.png" alt="Capibara" class="login-capibara">
+    <img src="<?= $logoUrl ?>" alt="Universidad La Gran Colombia" class="login-logo">
+    <img src="<?= $capibaraUrl ?>" alt="Capibara" class="login-capibara">
   </div>
 </div>
       <h1 class="brand-title">Portal de Solicitudes</h1>
