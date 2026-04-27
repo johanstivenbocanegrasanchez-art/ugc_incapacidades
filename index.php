@@ -3,29 +3,31 @@
 declare(strict_types=1);
 
 // PSR-4 Autoloader vía Composer (o fallback manual) - CARGAR PRIMERO
-if (file_exists(__DIR__ . '/vendor/autoload.php')) {
-    require_once __DIR__ . '/vendor/autoload.php';
-} else {
-    spl_autoload_register(function (string $class): void {
-        $prefixes = [
-            'App\\'   => __DIR__ . '/app/',
-            'Core\\'  => __DIR__ . '/core/',
-            'Config\\' => __DIR__ . '/config/',
-        ];
-        foreach ($prefixes as $prefix => $baseDir) {
-            $len = strlen($prefix);
-            if (strncmp($prefix, $class, $len) !== 0) {
-                continue;
-            }
-            $relativeClass = substr($class, $len);
-            $file = $baseDir . str_replace('\\', '/', $relativeClass) . '.php';
-            if (file_exists($file)) {
-                require_once $file;
-                return;
-            }
+// Autoloader manual PSR-4 - CARGAR PRIMERO
+spl_autoload_register(function (string $class): void {
+    $prefixes = [
+        'App\\'    => __DIR__ . '/app/',
+        'Core\\'   => __DIR__ . '/core/',
+        'Config\\' => __DIR__ . '/config/',
+        'Shuchkin\\' => __DIR__ . '/app/Libraries/',
+    ];
+
+    foreach ($prefixes as $prefix => $baseDir) {
+        $len = strlen($prefix);
+
+        if (strncmp($prefix, $class, $len) !== 0) {
+            continue;
         }
-    });
-}
+
+        $relativeClass = substr($class, $len);
+        $file = $baseDir . str_replace('\\', '/', $relativeClass) . '.php';
+
+        if (file_exists($file)) {
+            require_once $file;
+            return;
+        }
+    }
+});
 
 use Core\Config;
 use Core\Session;
