@@ -64,7 +64,18 @@ final class Config
 
     public static function baseUrl(): string
     {
-        return rtrim(self::get('BASE_URL', '/'), '/');
+        // Si está configurado en .env, usarlo
+        $configured = self::get('BASE_URL');
+        if ($configured !== null) {
+            return rtrim($configured, '/');
+        }
+
+        // Auto-detectar el subdirectorio basado en la ruta del script
+        $scriptName = $_SERVER['SCRIPT_NAME'] ?? '';
+        $scriptDir = dirname($scriptName);
+        
+        // Si está en la raíz, devolver string vacío, sino devolver el subdirectorio
+        return $scriptDir === '/' || $scriptDir === '\\' ? '' : rtrim($scriptDir, '/');
     }
 
     public static function assetUrl(string $path): string
