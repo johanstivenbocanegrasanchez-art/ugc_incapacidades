@@ -70,7 +70,8 @@ Security::applySecurityHeaders();
 // Parsear la URL
 $uri    = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 $base   = Config::baseUrl();
-$path   = $base ? preg_replace('#^' . preg_quote($base, '#') . '#', '', $uri) : $uri;
+// Siempre eliminar el baseUrl del URI (funciona tanto en raíz como en subdirectorio)
+$path   = preg_replace('#^' . preg_quote($base, '#') . '#', '', $uri);
 $path   = '/' . trim($path ?: '/', '/');
 $method = strtoupper($_SERVER['REQUEST_METHOD']);
 
