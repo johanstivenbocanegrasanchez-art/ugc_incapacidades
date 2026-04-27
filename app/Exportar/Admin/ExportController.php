@@ -1,12 +1,12 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Exportar\Admin;
 
 use Core\Controller;
 use App\Models\SolicitudModel;
-use PhpOffice\PhpSpreadsheet\Spreadsheet;
-use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use Shuchkin\SimpleXLSXGen;
 
 final class ExportController extends Controller
 {
@@ -87,55 +87,69 @@ final class ExportController extends Controller
 
     private function generarExcelPorHojas(array $data, string $nombreArchivo): void
     {
-        $spreadsheet = new Spreadsheet();
-        $index = 0;
+        $rutaLibreria = __DIR__ . '/../../Libraries/SimpleXLSXGen.php';
 
-        foreach ($data as $tituloHoja => $rows) {
-            $sheet = $index === 0
-                ? $spreadsheet->getActiveSheet()
-                : $spreadsheet->createSheet();
-
-            $sheet->setTitle($this->limpiarTituloHoja($tituloHoja));
-            $this->llenarHoja($sheet, $rows);
-
-            $index++;
+        if (!file_exists($rutaLibreria)) {
+            http_response_code(500);
+            echo 'No se encontró la librería SimpleXLSXGen en: ' . $rutaLibreria;
+            exit;
         }
 
-        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-        header('Content-Disposition: attachment; filename="' . $nombreArchivo . '_' . date('Ymd') . '.xlsx"');
-        header('Cache-Control: max-age=0');
+        require_once $rutaLibreria;
 
-        (new Xlsx($spreadsheet))->save('php://output');
+        $xlsx = new SimpleXLSXGen();
+
+        foreach ($data as $tituloHoja => $rows) {
+            $filas = $this->prepararFilas($rows);
+            $xlsx->addSheet($filas, $this->limpiarTituloHoja($tituloHoja));
+        }
+
+        $archivo = $nombreArchivo . '_' . date('Ymd') . '.xlsx';
+
+        if (ob_get_length()) {
+            ob_clean();
+        }
+
+        $xlsx->downloadAs($archivo);
         exit;
     }
 
-    private function llenarHoja($sheet, array $rows): void
+    private function prepararFilas(array $rows): array
     {
-        foreach ($this->cabeceras as $i => $cabecera) {
-            $col = chr(65 + $i);
+        $filas = [];
 
-            $sheet->setCellValue($col . '1', $cabecera);
-            $sheet->getStyle($col . '1')->getFont()->setBold(true);
-            $sheet->getColumnDimension($col)->setAutoSize(true);
-        }
+        // Primera fila: cabeceras
+        $filas[] = $this->cabeceras;
 
-        foreach ($rows as $fila => $row) {
-            foreach ($this->campos as $i => $campo) {
-                $col = chr(65 + $i);
+        // Filas de datos
+        foreach ($rows as $row) {
+            $fila = [];
+
+            foreach ($this->campos as $campo) {
                 $valor = $row[$campo] ?? '';
 
-                if ($campo === 'TIPO_SOLICITUD' && isset(TIPOS_SOLICITUD[$valor])) {
+                if ($campo === 'TIPO_SOLICITUD' && defined('TIPOS_SOLICITUD') && isset(TIPOS_SOLICITUD[$valor])) {
                     $valor = TIPOS_SOLICITUD[$valor];
                 }
 
-                $sheet->setCellValue($col . ($fila + 2), $valor);
+                $fila[] = $valor;
             }
+
+            $filas[] = $fila;
         }
+
+        return $filas;
     }
 
     private function limpiarTituloHoja(string $titulo): string
     {
         $titulo = str_replace(['\\', '/', '*', '[', ']', ':', '?'], ' ', $titulo);
+        $titulo = trim($titulo);
+
+        if ($titulo === '') {
+            $titulo = 'Hoja';
+        }
+
         return mb_substr($titulo, 0, 31);
     }
 }
